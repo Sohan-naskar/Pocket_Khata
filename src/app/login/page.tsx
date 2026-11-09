@@ -4,7 +4,7 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Wallet, Lock, Mail, Loader2, ArrowRight, ShieldCheck, UserCheck } from "lucide-react";
+import { Wallet, Lock, Mail, Loader2, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 function LoginForm() {
@@ -74,43 +74,8 @@ function LoginForm() {
     }
   };
 
-  const fillDemoCredentials = (role: "user" | "admin") => {
-    if (role === "user") {
-      setEmail("user@pocketkhata.app");
-      setPassword("userPassword123");
-    } else {
-      setEmail("admin@pocketkhata.app");
-      setPassword("adminPassword123");
-    }
-  };
-
   return (
     <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-      {/* Quick Demo Fill Buttons */}
-      <div className="mb-3 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-        <p className="text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-          Quick 1-Click Demo Logins:
-        </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            type="button"
-            onClick={() => fillDemoCredentials("user")}
-            className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 transition h-8"
-          >
-            <UserCheck className="w-3.5 h-3.5" />
-            User Demo
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoCredentials("admin")}
-            className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 transition h-8"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Admin Demo
-          </button>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-2.5">
         <div>
           <label
