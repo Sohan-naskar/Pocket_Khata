@@ -29,11 +29,11 @@ export default function NotFound() {
           Back to Dashboard
         </Link>
         <Link
-          href="/"
+          href="/login"
           className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-medium text-slate-300 border border-slate-700 transition min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />
-          Home Page
+          Sign In
         </Link>
       </div>
     </div>

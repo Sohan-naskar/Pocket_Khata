@@ -10,16 +10,14 @@ export const authConfig: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = nextUrl;
 
-      const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
-      const isProtectedRoute =
-        pathname.startsWith("/dashboard") ||
-        pathname.startsWith("/transactions") ||
-        pathname.startsWith("/udhaar") ||
-        pathname.startsWith("/analytics") ||
-        pathname.startsWith("/wallet-settings") ||
-        pathname.startsWith("/admin");
-      const isAdminRoute = pathname.startsWith("/admin");
+      // Public auth endpoints and static assets
+      const isAuthRoute = pathname === "/login" || pathname === "/signup";
+      const isAuthApi = pathname.startsWith("/api/auth");
+      if (isAuthApi) {
+        return true;
+      }
 
+      // If user is already logged in, prevent accessing login/signup and send straight to dashboard
       if (isAuthRoute) {
         if (isLoggedIn) {
           return Response.redirect(new URL("/dashboard", nextUrl));
@@ -27,11 +25,30 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
-      if (isProtectedRoute && !isLoggedIn) {
+      // If user is NOT logged in: strictly block access to the website
+      if (!isLoggedIn) {
+        // Return 401 JSON for unauthenticated API requests
+        if (pathname.startsWith("/api/")) {
+          return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // For root homepage "/", redirect directly to /login
+        if (pathname === "/") {
+          return Response.redirect(new URL("/login", nextUrl));
+        }
+
+        // For all other routes, redirect to login with callback
         const callbackUrl = encodeURIComponent(pathname);
         return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
       }
 
+      // If logged in and visiting root '/', redirect directly to /dashboard
+      if (pathname === "/") {
+        return Response.redirect(new URL("/dashboard", nextUrl));
+      }
+
+      // Admin route RBAC check
+      const isAdminRoute = pathname.startsWith("/admin");
       if (isAdminRoute) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const role = (auth?.user as any)?.role;
