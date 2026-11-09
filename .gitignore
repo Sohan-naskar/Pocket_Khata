@@ -40,3 +40,12 @@ prisma/*.db-journal
 dev.db
 dev.db-journal
 
+# Documentation & local planning files
+README.md
+PRD.md
+TRD.md
+DESIGN.md
+brain.md
+APP_FLOW.md
+PLAN.md
+LICENSE
