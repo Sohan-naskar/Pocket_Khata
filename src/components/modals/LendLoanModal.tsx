@@ -140,7 +140,7 @@ export function LendLoanModal({ isOpen, onClose, onSuccess }: LendLoanModalProps
                 type="text"
                 required
                 autoFocus
-                placeholder="Vikram Malhotra (Room 204)"
+                placeholder="Vikram Malhotra"
                 value={borrowerName}
                 onChange={(e) => setBorrowerName(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-amber-500 text-sm text-white placeholder-slate-600 outline-none transition min-h-[44px]"
@@ -177,7 +177,7 @@ export function LendLoanModal({ isOpen, onClose, onSuccess }: LendLoanModalProps
                 <input
                   id="borrower-email"
                   type="email"
-                  placeholder="vikram@hostel.edu"
+                  placeholder="vikram@example.com"
                   value={borrowerEmail}
                   onChange={(e) => setBorrowerEmail(e.target.value)}
                   className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-amber-500 text-sm text-white placeholder-slate-600 outline-none min-h-[44px]"
@@ -288,7 +288,7 @@ export function LendLoanModal({ isOpen, onClose, onSuccess }: LendLoanModalProps
             <input
               id="loan-notes"
               type="text"
-              placeholder="e.g. Canteen dinner split, promised to pay Friday"
+              placeholder="e.g. Dinner bill split, promised to pay Friday"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-amber-500 text-sm text-white placeholder-slate-600 outline-none min-h-[44px]"

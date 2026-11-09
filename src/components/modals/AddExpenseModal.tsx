@@ -216,7 +216,7 @@ export function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpenseModalP
             <input
               id="expense-desc"
               type="text"
-              placeholder="e.g. Chai & Samosa with Room 204"
+              placeholder="e.g. Dinner with friends, supermarket groceries"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-rose-500 text-sm text-white placeholder-slate-600 outline-none min-h-[44px]"

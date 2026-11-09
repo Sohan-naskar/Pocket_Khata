@@ -214,7 +214,7 @@ export function AddIncomeModal({ isOpen, onClose, onSuccess }: AddIncomeModalPro
             <input
               id="income-desc"
               type="text"
-              placeholder="e.g. UPI transfer from Dad for hostel mess"
+              placeholder="e.g. Monthly salary deposit, freelance project payment"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-emerald-500 text-sm text-white placeholder-slate-600 outline-none min-h-[44px]"

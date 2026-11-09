@@ -57,12 +57,12 @@ function LoginForm() {
     }
   };
 
-  const fillDemoCredentials = (role: "student" | "admin") => {
-    if (role === "student") {
-      setEmail("student@hostelkhata.app");
-      setPassword("studentPassword123");
+  const fillDemoCredentials = (role: "user" | "admin") => {
+    if (role === "user") {
+      setEmail("user@pocketkhata.app");
+      setPassword("userPassword123");
     } else {
-      setEmail("admin@hostelkhata.app");
+      setEmail("admin@pocketkhata.app");
       setPassword("adminPassword123");
     }
   };
@@ -77,11 +77,11 @@ function LoginForm() {
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => fillDemoCredentials("student")}
+            onClick={() => fillDemoCredentials("user")}
             className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 transition min-h-[44px]"
           >
             <UserCheck className="w-3.5 h-3.5" />
-            Student Demo
+            User Demo
           </button>
           <button
             type="button"
@@ -110,7 +110,7 @@ function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="student@hostelkhata.app"
+              placeholder="user@pocketkhata.app"
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm text-white placeholder-slate-500 outline-none transition min-h-[44px]"
             />
           </div>
@@ -201,7 +201,7 @@ function LoginForm() {
       </button>
 
       <p className="text-center text-xs text-slate-400 mt-6">
-        New hosteller or bachelor?{" "}
+        New to PocketKhata?{" "}
         <Link
           href="/signup"
           className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4"
@@ -228,7 +228,7 @@ export default function LoginPage() {
               <Wallet className="w-4 h-4" />
             </div>
             <span className="text-xl font-bold tracking-tight text-white">
-              Hostel<span className="text-indigo-400">Khata</span>
+              Pocket<span className="text-indigo-400">Khata</span>
             </span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

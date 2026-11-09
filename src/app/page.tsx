@@ -33,7 +33,7 @@ export default function LandingPage() {
               <Wallet className="w-5 h-5" />
             </div>
             <span className="text-xl font-bold tracking-tight text-white">
-              Hostel<span className="text-indigo-400">Khata</span>
+              Pocket<span className="text-indigo-400">Khata</span>
             </span>
           </Link>
 
@@ -60,19 +60,19 @@ export default function LandingPage() {
         <section className="px-4 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-6 animate-pulse">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Built exclusively for Students, Bachelors & Hostellers</span>
+            <span>Built for Everyday Personal Finance & Day-to-Day Life</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight sm:leading-tight">
-            Stop losing track of your{" "}
+            Master your daily{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">
               UPI vs Cash
             </span>{" "}
-            and Roommate Udhaar.
+            and peer Udhaar.
           </h1>
 
           <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Hostel life has two wallets: <strong>Online (UPI/Bank)</strong> and <strong>Cash (Pocket Money)</strong>. HostelKhata tracks both simultaneously, logs daily expenses in strict <code>DD-MM-YYYY</code> format, and reminds friends to return borrowed money with one-tap phone and email links.
+            Everyday life has two wallets: <strong>Online (UPI/Bank)</strong> and <strong>Cash (Pocket Money)</strong>. PocketKhata tracks both simultaneously, records daily expenses in strict <code>DD-MM-YYYY</code> format, and reminds friends & colleagues to return borrowed money with one-tap phone and email links.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto">
@@ -80,7 +80,7 @@ export default function LandingPage() {
               href="/signup"
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition min-h-[44px]"
             >
-              <span>Get Started — It&apos;s Free</span>
+              <span>Open Free Khata</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -88,7 +88,7 @@ export default function LandingPage() {
               href="/login"
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 font-semibold text-sm transition min-h-[44px]"
             >
-              <span>View Interactive Demo</span>
+              <span>View Live Demo</span>
             </Link>
           </div>
 
@@ -113,10 +113,10 @@ export default function LandingPage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-800/80">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Crafted specifically for the chaotic hostel budget
+              Designed for your everyday personal spending
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-2">
-              Everything hostellers and flatmates actually need, without unnecessary accounting jargon.
+              Groceries, chai, dining out, bills, travel, and personal lending — all in one clean interface.
             </p>
           </div>
 
@@ -130,7 +130,7 @@ export default function LandingPage() {
                 Dual-Wallet Auto-Calculation
               </h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Set and maintain separate <strong>Online (UPI)</strong> and <strong>Cash (Pocket)</strong> balances. Every samosa in cash or mess fee in UPI automatically updates the right wallet and your live Total Balance.
+                Set and maintain separate <strong>Online (UPI)</strong> and <strong>Cash (Pocket)</strong> balances. Every vegetable purchase in cash or dining bill via GPay automatically updates the correct wallet and your live Total Balance.
               </p>
             </div>
 
@@ -143,7 +143,7 @@ export default function LandingPage() {
                 Udhaar Tracker & Overdue Alerts
               </h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Log loans to friends with borrower name, phone, email, and expected return date. When due, an amber alert banner pops up with <strong>1-tap call & email links</strong>. When collected, money returns to your balance.
+                Log loans to friends, family, or colleagues with borrower name, phone, email, and expected return date. When due, an amber alert banner pops up with <strong>1-tap call & email links</strong>. When collected, money returns to your balance.
               </p>
             </div>
 
@@ -156,7 +156,7 @@ export default function LandingPage() {
                 Strict DD-MM-YYYY Day Ledger
               </h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Zero confusion over ambiguous US date formats. Every daily expenditure is recorded and displayed in clean <code>DD-MM-YYYY</code> format with monthly Spent vs. Saved comparison analytics.
+                Zero confusion over ambiguous date formats. Every daily expenditure is recorded and displayed in clean <code>DD-MM-YYYY</code> format with monthly Spent vs. Saved comparison analytics.
               </p>
             </div>
           </div>
@@ -166,24 +166,24 @@ export default function LandingPage() {
         <section className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-indigo-950 via-slate-900 to-blue-950 border border-indigo-500/40 shadow-2xl relative overflow-hidden">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-              Ready to take control of your hostel finances?
+              Ready to take control of your day-to-day spending?
             </h2>
             <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto mb-6">
-              Create your account in under 30 seconds or try our instant demo with preloaded student transactions.
+              Create your account in 30 seconds or try our instant demo with preloaded daily transactions.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href="/signup"
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/40 transition min-h-[44px] flex items-center justify-center gap-2"
               >
-                <span>Open Your Khata Now</span>
+                <span>Open Your Free Khata</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/login"
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 font-semibold text-sm transition min-h-[44px] flex items-center justify-center"
               >
-                <span>Demo Student Sign In</span>
+                <span>Try Demo Account</span>
               </Link>
             </div>
           </div>
@@ -195,4 +195,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

@@ -63,7 +63,7 @@ export function WalletCards({
             )}
             <div className="flex items-center gap-1.5 mt-2 text-xs text-indigo-300">
               <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
-              <span>Real-time Hosteller Net Worth</span>
+              <span>Real-time Net Worth</span>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export function WalletCards({
               </h3>
             )}
             <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
-              <span>Primary for canteen & mess</span>
+              <span>Primary for shopping & dining</span>
               <span className="font-mono text-blue-400 font-semibold">
                 {total > 0 ? `${Math.round((online / total) * 100)}%` : "0%"}
               </span>
@@ -120,7 +120,7 @@ export function WalletCards({
                 <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
                   Cash Balance
                 </p>
-                <p className="text-[11px] text-slate-400">Pocket & Desk Notes</p>
+                <p className="text-[11px] text-slate-400">Pocket & Wallet Notes</p>
               </div>
             </div>
 
@@ -138,7 +138,7 @@ export function WalletCards({
               </h3>
             )}
             <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
-              <span>Chai, auto & cash xerox</span>
+              <span>Groceries, chai & transport</span>
               <span className="font-mono text-emerald-400 font-semibold">
                 {total > 0 ? `${Math.round((cash / total) * 100)}%` : "0%"}
               </span>

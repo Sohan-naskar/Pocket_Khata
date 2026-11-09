@@ -5,20 +5,21 @@ import { ToastProvider } from "@/components/ui/Toast";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | HostelKhata",
-    default: "HostelKhata — Student Wallet & Udhaar Tracker",
+    template: "%s | PocketKhata",
+    default: "PocketKhata — Daily Expense, Wallet & Udhaar Tracker",
   },
   description:
-    "Responsive multi-user day-to-day personal finance and lending (Udhaar) tracker designed for students, bachelors, and hostellers. Track UPI vs Cash balances with zero effort.",
+    "Responsive multi-user day-to-day personal finance, dual-wallet (UPI vs Cash), and lending (Udhaar) tracker designed for everyday life. Track daily spending with zero effort.",
   keywords: [
-    "HostelKhata",
-    "hostel expense tracker",
-    "bachelor finance",
-    "student wallet",
-    "udhaar tracker",
+    "PocketKhata",
+    "daily expense tracker",
+    "personal finance",
     "UPI vs Cash",
+    "udhaar tracker",
+    "day to day expenses",
+    "daily hisab",
   ],
-  authors: [{ name: "HostelKhata Team" }],
+  authors: [{ name: "PocketKhata Team" }],
 };
 
 export const viewport: Viewport = {
@@ -45,4 +46,3 @@ export default function RootLayout({
     </html>
   );
 }
-

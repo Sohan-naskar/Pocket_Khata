@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Wallet, Heart, Phone, Mail, ShieldCheck } from "lucide-react";
+import { Wallet, Heart, Phone, Mail } from "lucide-react";
 
 export function AppFooter() {
   const currentYear = new Date().getFullYear();
@@ -17,11 +17,11 @@ export function AppFooter() {
               <Wallet className="w-3.5 h-3.5" />
             </div>
             <span className="font-bold text-sm tracking-tight text-white">
-              Hostel<span className="text-indigo-400">Khata</span>
+              Pocket<span className="text-indigo-400">Khata</span>
             </span>
           </Link>
           <p className="text-xs text-slate-400 text-center md:text-left">
-            Built for hostellers, bachelors, and flatmates managing daily UPI & Cash.
+            Built for everyday personal finance: tracking daily UPI & Cash spending and peer Udhaar.
           </p>
         </div>
 
@@ -50,7 +50,7 @@ export function AppFooter() {
             <span>Support</span>
           </a>
           <a
-            href="mailto:support@hostelkhata.app"
+            href="mailto:support@pocketkhata.app"
             className="flex items-center gap-1 hover:text-indigo-400 transition"
           >
             <Mail className="w-3 h-3" />
@@ -65,13 +65,12 @@ export function AppFooter() {
             <span className="text-emerald-400 font-medium text-[11px]">System Online</span>
           </div>
           <p className="flex items-center gap-1">
-            <span>&copy; {currentYear} HostelKhata. Crafted with</span>
+            <span>&copy; {currentYear} PocketKhata. Crafted with</span>
             <Heart className="w-3 h-3 text-rose-500 fill-rose-500 inline" />
-            <span>for campus life.</span>
+            <span>for everyday life.</span>
           </p>
         </div>
       </div>
     </footer>
   );
 }
-

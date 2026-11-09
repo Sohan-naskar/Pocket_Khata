@@ -143,7 +143,7 @@ export function AppSidebar({
 
       {/* Footer info within sidebar */}
       <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 text-xs text-slate-400">
-        <p className="font-semibold text-slate-300">HostelKhata v1.0</p>
+        <p className="font-semibold text-slate-300">PocketKhata v1.0</p>
         <p className="text-[11px] mt-0.5 text-slate-400">
           Strict DD-MM-YYYY Ledger & Dual Wallet Engine
         </p>

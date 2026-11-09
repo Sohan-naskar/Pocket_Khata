@@ -72,7 +72,7 @@ export function MobileDrawer({
               <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
                 <Wallet className="w-4 h-4" />
               </div>
-              <span className="font-bold text-white text-base">HostelKhata</span>
+              <span className="font-bold text-white text-base">PocketKhata</span>
             </div>
             <button
               onClick={onClose}
@@ -91,7 +91,7 @@ export function MobileDrawer({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-white truncate">
-                  {session?.user?.name || "Hostel Student"}
+                  {session?.user?.name || "PocketKhata User"}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-xs text-slate-400 truncate">
@@ -185,10 +185,10 @@ export function MobileDrawer({
               className="flex items-center gap-1.5 hover:text-indigo-400 transition min-h-[44px]"
             >
               <Phone className="w-3.5 h-3.5" />
-              <span>Hostel Support</span>
+              <span>Support</span>
             </a>
             <a
-              href="mailto:support@hostelkhata.app"
+              href="mailto:support@pocketkhata.app"
               className="flex items-center gap-1.5 hover:text-indigo-400 transition min-h-[44px]"
             >
               <Mail className="w-3.5 h-3.5" />
@@ -208,4 +208,3 @@ export function MobileDrawer({
     </div>
   );
 }
-

@@ -56,27 +56,30 @@ export interface LoanItem {
   createdAt: string | Date;
 }
 
-export const HOSTEL_EXPENSE_CATEGORIES = [
-  "Food & Mess",
+export const EVERYDAY_EXPENSE_CATEGORIES = [
+  "Food & Dining",
+  "Groceries & Supermarket",
   "Chai & Snacks",
-  "Stationery & Xerox",
-  "Room & Wi-Fi Split",
-  "Travel & Auto/Bus",
-  "Groceries & Essentials",
-  "Semester Exam & College Dues",
-  "Entertainment & Outings",
-  "Medical & Pharmacy",
-  "Recharge & Subscriptions",
-  "Laundry & Cleaning",
+  "Bills & Recharges",
+  "Travel & Fuel",
+  "Shopping & Clothes",
+  "Health & Pharmacy",
+  "Rent & Utilities",
+  "Entertainment & OTT",
+  "Personal Care",
+  "Family & Gifts",
   "Miscellaneous",
 ] as const;
 
-export const HOSTEL_INCOME_CATEGORIES = [
-  "Monthly Allowance (Parents)",
-  "Pocket Money",
-  "Freelance & Project Gigs",
-  "Scholarship & Stipend",
+export const EVERYDAY_INCOME_CATEGORIES = [
+  "Monthly Salary",
+  "Freelance & Business Gigs",
+  "Pocket Money / Allowance",
+  "Investments & Dividends",
   "Cashback & Refunds",
   "Other Income",
 ] as const;
 
+// Backward-compatible aliases
+export const HOSTEL_EXPENSE_CATEGORIES = EVERYDAY_EXPENSE_CATEGORIES;
+export const HOSTEL_INCOME_CATEGORIES = EVERYDAY_INCOME_CATEGORIES;

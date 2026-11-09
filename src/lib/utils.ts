@@ -32,7 +32,7 @@ export function formatPhoneForTel(phone: string): string {
 }
 
 /**
- * Generate a friendly hostel reminder mailto link
+ * Generate a friendly daily reminder mailto link
  */
 export function createMailtoReminder({
   email,
@@ -47,10 +47,9 @@ export function createMailtoReminder({
   dueDate: string;
   lenderName?: string;
 }): string {
-  const subject = encodeURIComponent(`Hostel Reminder: Pending Udhaar of ₹${amount}`);
+  const subject = encodeURIComponent(`Friendly Reminder: Pending payment of ₹${amount}`);
   const body = encodeURIComponent(
-    `Hey ${borrowerName},\n\nJust a quick and friendly reminder regarding the ₹${amount} borrowed on HostelKhata, which was due on ${dueDate}.\n\nPlease UPI it over whenever you get a chance.\n\nThanks!\n${lenderName || "Your Roommate"}`
+    `Hi ${borrowerName},\n\nJust a quick and friendly reminder regarding the ₹${amount} logged on PocketKhata, which was due on ${dueDate}.\n\nPlease UPI it over whenever you get a chance.\n\nThanks!\n${lenderName || "PocketKhata User"}`
   );
   return `mailto:${email}?subject=${subject}&body=${body}`;
 }
-

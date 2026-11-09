@@ -50,8 +50,8 @@ async function runTests() {
   const notFoundRes = await fetch(`${baseUrl}/this-page-does-not-exist`);
   console.log(`5. Custom 404 Route Status: ${notFoundRes.status} (Expected: 404)`);
   const notFoundHtml = await notFoundRes.text();
-  const hasHostel404 = notFoundHtml.includes("Hostel Room Not Found");
-  console.log(`   Includes custom HostelKhata 404 UI: ${hasHostel404}`);
+  const has404 = notFoundHtml.includes("Page Not Found");
+  console.log(`   Includes custom PocketKhata 404 UI: ${has404}`);
 
   console.log("\n✅ All automated baseline checks PASSED!");
 }

@@ -100,21 +100,21 @@ export default function WalletSettingsPage() {
           <div className="p-6 rounded-2xl bg-[#111827] border border-slate-800 shadow-xl space-y-4">
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <User className="w-4 h-4 text-indigo-400" />
-              Student Profile
+              Account Profile
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
               <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
-                <p className="text-xs text-slate-400">Student Name</p>
+                <p className="text-xs text-slate-400">Account Name</p>
                 <p className="font-semibold text-white mt-1">
-                  {session?.user?.name || "Hosteller"}
+                  {session?.user?.name || "PocketKhata User"}
                 </p>
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
                 <p className="text-xs text-slate-400">Email Address</p>
                 <p className="font-semibold text-white mt-1 truncate">
-                  {session?.user?.email || "student@hostelkhata.app"}
+                  {session?.user?.email || "user@pocketkhata.app"}
                 </p>
               </div>
 
@@ -237,7 +237,7 @@ export default function WalletSettingsPage() {
             <div>
               <h3 className="text-sm font-bold text-white">Sign Out from Session</h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Ensure you log out on shared campus or hostel computers.
+                Ensure you log out on shared or public computers.
               </p>
             </div>
 

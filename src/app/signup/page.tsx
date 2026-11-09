@@ -14,7 +14,7 @@ import {
   CreditCard,
   Banknote,
   Shield,
-  GraduationCap,
+  UserCircle2,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -67,7 +67,6 @@ export default function SignupPage() {
 
       success("Account Created!", "Signing you into your personal Khata...");
 
-      // Automatically sign in
       const signInRes = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
@@ -100,14 +99,14 @@ export default function SignupPage() {
               <Wallet className="w-4 h-4" />
             </div>
             <span className="text-xl font-bold tracking-tight text-white">
-              Hostel<span className="text-indigo-400">Khata</span>
+              Pocket<span className="text-indigo-400">Khata</span>
             </span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Join HostelKhata
+            Join PocketKhata
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Never lose track of your UPI balance, cash, or roommate loans again.
+            Never lose track of your UPI balance, cash, or friend loans again.
           </p>
         </div>
 
@@ -128,8 +127,8 @@ export default function SignupPage() {
                       : "bg-slate-900 border-slate-700 text-slate-400 hover:text-white"
                   }`}
                 >
-                  <GraduationCap className="w-4 h-4 text-indigo-400" />
-                  Student / Bachelor
+                  <UserCircle2 className="w-4 h-4 text-indigo-400" />
+                  Personal Account
                 </button>
                 <button
                   type="button"
@@ -141,7 +140,7 @@ export default function SignupPage() {
                   }`}
                 >
                   <Shield className="w-4 h-4 text-purple-400" />
-                  Hostel Admin
+                  System Admin
                 </button>
               </div>
             </div>
@@ -184,7 +183,7 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="aryan@hostel.edu"
+                  placeholder="user@example.com"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm text-white placeholder-slate-500 outline-none transition min-h-[44px]"
                 />
               </div>
@@ -288,7 +287,7 @@ export default function SignupPage() {
           </form>
 
           <p className="text-center text-xs text-slate-400 mt-6">
-            Already have a HostelKhata account?{" "}
+            Already have a PocketKhata account?{" "}
             <Link
               href="/login"
               className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4"
@@ -301,4 +300,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

@@ -7,9 +7,14 @@ const prisma = new PrismaClient();
 async function verifyEngine() {
   console.log("🚀 Testing HostelKhata Dual-Wallet & Udhaar Calculation Engine...\n");
 
-  // 1. Fetch Student User (Aryan Sharma)
-  const student = await prisma.user.findUnique({
-    where: { email: "student@hostelkhata.app" },
+  // 1. Fetch User (Aryan Sharma)
+  const student = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: "user@pocketkhata.app" },
+        { email: "student@hostelkhata.app" }
+      ]
+    },
     include: { walletProfile: true },
   });
 

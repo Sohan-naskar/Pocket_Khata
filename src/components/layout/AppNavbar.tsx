@@ -46,7 +46,7 @@ export function AppNavbar({
             </div>
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                Hostel<span className="text-indigo-400">Khata</span>
+                Pocket<span className="text-indigo-400">Khata</span>
                 {userRole === "ADMIN" && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-0.5">
                     <Shield className="w-2.5 h-2.5" />
@@ -102,7 +102,7 @@ export function AppNavbar({
                 )}
               </div>
               <span className="hidden xl:inline text-xs font-medium text-slate-200 max-w-[120px] truncate">
-                {session?.user?.name || "Hosteller"}
+                {session?.user?.name || "User"}
               </span>
             </Link>
 

@@ -58,7 +58,7 @@ export default function AdminPage() {
             </div>
             <h1 className="text-2xl font-bold text-white">Admin Access Restricted</h1>
             <p className="text-sm text-slate-400">
-              Only hostel wardens and system administrators with the <strong className="text-purple-400">ADMIN</strong> role can access platform telemetry.
+              Only system administrators with the <strong className="text-purple-400">ADMIN</strong> role can access platform telemetry.
             </p>
             <div className="pt-2">
               <Link
@@ -89,11 +89,11 @@ export default function AdminPage() {
                 Admin Platform Telemetry
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                HOSTEL WARDEN PORTAL
+                ADMIN PORTAL
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Real-time user registration analytics, active student counts, and system activity logs.
+              Real-time user registration analytics, active user counts, and system activity logs.
             </p>
           </div>
 
@@ -152,7 +152,7 @@ export default function AdminPage() {
               <p className="text-2xl sm:text-3xl font-financial font-extrabold text-amber-400">
                 {isLoading ? "..." : metrics?.totalLoans ?? 0}
               </p>
-              <p className="text-xs text-slate-400 mt-1">Peer-to-peer hostel loans</p>
+              <p className="text-xs text-slate-400 mt-1">Peer-to-peer user loans</p>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ export default function AdminPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-800 bg-slate-900/60 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        <th className="py-3 px-4">Student / User</th>
+                        <th className="py-3 px-4">User / Account</th>
                         <th className="py-3 px-4">Email</th>
                         <th className="py-3 px-4">Role</th>
                         <th className="py-3 px-4">Registered Date (DD-MM-YYYY)</th>
