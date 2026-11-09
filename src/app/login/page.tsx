@@ -18,6 +18,23 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  React.useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "Configuration") {
+      toastError(
+        "OAuth Configuration Notice",
+        "Google credentials or NEXTAUTH_URL need to be set in Vercel settings."
+      );
+    } else if (errorParam === "OAuthCallbackError") {
+      toastError(
+        "Google Sign-In Cancelled",
+        "The Google authorization request was cancelled or mismatched. Please verify redirect URIs."
+      );
+    } else if (errorParam) {
+      toastError("Authentication Notice", `Sign-in notice: ${errorParam}`);
+    }
+  }, [searchParams, toastError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -68,17 +85,17 @@ function LoginForm() {
   };
 
   return (
-    <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+    <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
       {/* Quick Demo Fill Buttons */}
-      <div className="mb-6 p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-        <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+      <div className="mb-3 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+        <p className="text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
           Quick 1-Click Demo Logins:
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5">
           <button
             type="button"
             onClick={() => fillDemoCredentials("user")}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 transition min-h-[44px]"
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 transition h-8"
           >
             <UserCheck className="w-3.5 h-3.5" />
             User Demo
@@ -86,7 +103,7 @@ function LoginForm() {
           <button
             type="button"
             onClick={() => fillDemoCredentials("admin")}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 transition min-h-[44px]"
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 transition h-8"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
             Admin Demo
@@ -94,16 +111,16 @@ function LoginForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-2.5">
         <div>
           <label
             htmlFor="email"
-            className="block text-xs font-medium text-slate-300 mb-1.5"
+            className="block text-[11px] font-medium text-slate-300 mb-1"
           >
             Email Address
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               id="email"
               type="email"
@@ -111,7 +128,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@pocketkhata.app"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm text-white placeholder-slate-500 outline-none transition min-h-[44px]"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
             />
           </div>
         </div>
@@ -119,12 +136,12 @@ function LoginForm() {
         <div>
           <label
             htmlFor="password"
-            className="block text-xs font-medium text-slate-300 mb-1.5"
+            className="block text-[11px] font-medium text-slate-300 mb-1"
           >
             Password
           </label>
           <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               id="password"
               type="password"
@@ -132,7 +149,7 @@ function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm text-white placeholder-slate-500 outline-none transition min-h-[44px]"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
             />
           </div>
         </div>
@@ -140,29 +157,29 @@ function LoginForm() {
         <button
           type="submit"
           disabled={isLoading || isGoogleLoading}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition min-h-[44px] active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md shadow-indigo-600/30 transition h-10 active:scale-[0.99]"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
               Verifying...
             </>
           ) : (
             <>
               Sign In to Khata
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </>
           )}
         </button>
       </form>
 
       {/* Divider */}
-      <div className="relative my-6">
+      <div className="relative my-2.5 sm:my-3">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-slate-800" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-[#111827] px-3 text-slate-500">
+        <div className="relative flex justify-center text-[10px] uppercase">
+          <span className="bg-[#111827] px-2.5 text-slate-500 tracking-wider">
             Or continue with
           </span>
         </div>
@@ -173,10 +190,10 @@ function LoginForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading || isLoading}
-        className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 hover:border-slate-600 text-slate-200 text-sm font-medium transition min-h-[44px]"
+        className="w-full flex items-center justify-center gap-2.5 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 hover:border-slate-600 text-slate-200 text-xs sm:text-sm font-medium transition h-10"
       >
         {isGoogleLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
         ) : (
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -193,20 +210,20 @@ function LoginForm() {
             />
             <path
               fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
         )}
         Continue with Google
       </button>
 
-      <p className="text-center text-xs text-slate-400 mt-6">
+      <p className="text-center text-[11px] text-slate-400 mt-2.5">
         New to PocketKhata?{" "}
         <Link
           href="/signup"
-          className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4"
+          className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-2"
         >
-          Create your account
+          Create account
         </Link>
       </p>
     </div>
@@ -215,34 +232,34 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-[#090D16]">
+    <div className="min-h-screen flex flex-col justify-center items-center px-3 py-3 sm:py-6 bg-[#090D16]">
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(79,70,229,0.15),rgba(255,255,255,0))]" />
 
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
+        <div className="text-center mb-2 sm:mb-3">
           <Link
-            href="/"
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 transition mb-4 shadow-xl"
+            href="/login"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 transition mb-1.5 shadow-md"
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30">
-              <Wallet className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white shadow shadow-indigo-600/30">
+              <Wallet className="w-3.5 h-3.5" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">
+            <span className="text-base font-bold tracking-tight text-white">
               Pocket<span className="text-indigo-400">Khata</span>
             </span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
             Log in to your Khata
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-0.5">
             Track daily UPI & cash expenses and recover pending Udhaar.
           </p>
         </div>
 
         <Suspense
           fallback={
-            <div className="p-8 rounded-2xl bg-[#111827] border border-slate-800 text-center">
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-400 mx-auto" />
+            <div className="p-6 rounded-2xl bg-[#111827] border border-slate-800 text-center">
+              <Loader2 className="w-5 h-5 animate-spin text-indigo-400 mx-auto" />
               <p className="text-xs text-slate-400 mt-2">Loading login...</p>
             </div>
           }
