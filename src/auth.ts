@@ -1,9 +1,13 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/auth.config";
+
+class UnauthorizedAccountError extends CredentialsSignin {
+  code = "UnauthorizedAccount";
+}
 
 const FALLBACK_AUTH_SECRET =
   process.env.AUTH_SECRET ||
@@ -20,7 +24,9 @@ if (!process.env.NEXTAUTH_SECRET) {
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
+  if (clean === "admin@pocketkhata.app") return true;
   if (clean === "sohannaskar2304@gmail.com") return true;
+  if (process.env.ADMIN_INIT_EMAIL && process.env.ADMIN_INIT_EMAIL.toLowerCase().trim() === clean) return true;
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === clean) return true;
   if (process.env.ADMIN_EMAILS) {
     const list = process.env.ADMIN_EMAILS.toLowerCase().split(",").map((s) => s.trim());
@@ -59,7 +65,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({
           where: { email },
         });
-        if (!user || !user.passwordHash) return null;
+
+        // Do NOT allow auto-registration: return dedicated UnauthorizedAccount error
+        if (!user) {
+          throw new UnauthorizedAccountError();
+        }
+        if (!user.passwordHash) {
+          throw new UnauthorizedAccountError();
+        }
+
         const isValid = await bcrypt.compare(String(credentials.password), user.passwordHash);
         if (!isValid) return null;
 
@@ -91,53 +105,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig.callbacks,
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        if (!user.email) return true;
+        if (!user.email) return "/login?error=UnauthorizedAccount";
         try {
           const email = user.email.toLowerCase().trim();
-          const isAdmin = checkIsAdminEmail(email);
-
-          let dbUser = await prisma.user.findUnique({
+          const dbUser = await prisma.user.findUnique({
             where: { email },
           });
 
+          // Reject Google sign-in if the user does NOT exist in the database (no auto-registration)
           if (!dbUser) {
-            dbUser = await prisma.user.create({
-              data: {
-                email,
-                name: user.name || email.split("@")[0],
-                image: user.image || null,
-                role: isAdmin ? "ADMIN" : "USER",
-              },
-            });
+            return "/login?error=UnauthorizedAccount";
+          }
 
-            await prisma.walletProfile
-              .create({
-                data: {
-                  userId: dbUser.id,
-                  onlineBalance: 0,
-                  cashBalance: 0,
-                  currency: "INR",
-                },
-              })
-              .catch((err) => {
-                console.warn("Wallet profile creation skipped:", err);
-              });
-          } else if (isAdmin && dbUser.role !== "ADMIN") {
-            dbUser = await prisma.user.update({
+          const isAdmin = checkIsAdminEmail(email);
+          if (isAdmin && dbUser.role !== "ADMIN") {
+            await prisma.user.update({
               where: { id: dbUser.id },
               data: { role: "ADMIN" },
             });
+            dbUser.role = "ADMIN";
           }
 
-          if (dbUser) {
-            user.id = dbUser.id;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (user as any).role = dbUser.role;
-          }
+          user.id = dbUser.id;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (user as any).role = dbUser.role;
+          return true;
         } catch (err) {
           console.error("Warning during Google signIn callback:", err);
+          return "/login?error=UnauthorizedAccount";
         }
-        return true;
       }
       return true;
     },

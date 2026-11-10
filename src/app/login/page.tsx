@@ -28,6 +28,7 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [adminLoginError, setAdminLoginError] = useState("");
+  const [unregisteredError, setUnregisteredError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [unauthorizedAccountInfo, setUnauthorizedAccountInfo] = useState<{
@@ -39,7 +40,12 @@ function LoginForm() {
     const errorParam = searchParams.get("error");
     const attemptEmail = searchParams.get("attemptEmail");
 
-    if (errorParam === "unauthorized" || errorParam === "AccessDenied") {
+    if (errorParam === "UnauthorizedAccount") {
+      const msg =
+        "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
+      setUnregisteredError(msg);
+      toastError("Unauthorized Account", msg);
+    } else if (errorParam === "unauthorized" || errorParam === "AccessDenied") {
       setUnauthorizedAccountInfo({
         email: attemptEmail || session?.user?.email || "sohannaskar2004@gmail.com",
         role: "USER (Personal Account)",
@@ -62,11 +68,13 @@ function LoginForm() {
   const handleSelectAdmin = () => {
     setAccountType("ADMIN");
     setAdminLoginError("");
+    setUnregisteredError("");
   };
 
   const handleSelectUser = () => {
     setAccountType("USER");
     setAdminLoginError("");
+    setUnregisteredError("");
   };
 
   const handleReturnToLogin = async () => {
@@ -78,6 +86,7 @@ function LoginForm() {
     setUnauthorizedAccountInfo(null);
     setAccountType("USER");
     setAdminLoginError("");
+    setUnregisteredError("");
     setEmail("");
     setPassword("");
     router.replace("/login");
@@ -92,15 +101,45 @@ function LoginForm() {
 
     setIsLoading(true);
     setAdminLoginError("");
+    setUnregisteredError("");
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const res = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
         redirect: false,
       });
 
       if (res?.error) {
-        toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
+        // Check if the failure is due to an unregistered account
+        try {
+          const verifyRes = await fetch("/api/auth/verify-account", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: cleanEmail }),
+          });
+          const verifyData = await verifyRes.json();
+          if (!verifyData?.exists) {
+            const unauthorizedMsg =
+              "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
+            setUnregisteredError(unauthorizedMsg);
+            toastError("Unauthorized Account", unauthorizedMsg);
+            setIsLoading(false);
+            return;
+          }
+        } catch {
+          // Fallback if verification route fails
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (res.error === "UnauthorizedAccount" || (res as any)?.code === "UnauthorizedAccount") {
+          const unauthorizedMsg =
+            "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
+          setUnregisteredError(unauthorizedMsg);
+          toastError("Unauthorized Account", unauthorizedMsg);
+        } else {
+          toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
+        }
         setIsLoading(false);
         return;
       }
@@ -138,6 +177,7 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setAdminLoginError("");
+    setUnregisteredError("");
     try {
       const targetUrl = accountType === "ADMIN" ? "/admin" : callbackUrl;
       await signIn("google", { callbackUrl: targetUrl });
@@ -284,6 +324,27 @@ function LoginForm() {
               </button>
             </div>
           </div>
+
+          {/* Explicit Red Alert Banner for Unauthorized Account */}
+          {unregisteredError && (
+            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in duration-200">
+              <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-rose-200">Unauthorized Account</p>
+                <p className="leading-relaxed text-rose-300/90 text-xs">
+                  {unregisteredError}
+                </p>
+                <div className="pt-1">
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-300 underline underline-offset-2 hover:text-white"
+                  >
+                    Create an account now &rarr;
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Error Banner for Unauthorized Admin Attempt */}
           {adminLoginError && (

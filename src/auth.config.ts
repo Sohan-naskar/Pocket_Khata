@@ -28,7 +28,7 @@ export const authConfig: NextAuthConfig = {
       // Public auth endpoints and static assets
       const isAuthRoute = pathname === "/login" || pathname === "/signup";
       const isAuthApi = pathname.startsWith("/api/auth");
-      if (isAuthApi) {
+      if (isAuthApi || pathname === "/unauthorized") {
         return true;
       }
 
@@ -86,10 +86,7 @@ export const authConfig: NextAuthConfig = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const role = (auth?.user as any)?.role;
         if (role !== "ADMIN") {
-          const userEmail = encodeURIComponent(auth?.user?.email || "");
-          return Response.redirect(
-            new URL(`/login?error=unauthorized&attemptEmail=${userEmail}`, nextUrl)
-          );
+          return Response.redirect(new URL("/unauthorized", nextUrl));
         }
         return true;
       }
