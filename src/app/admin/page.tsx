@@ -402,11 +402,10 @@ export default function AdminPage() {
                             </td>
                             <td className="py-3.5 px-4">
                               <span
-                                className={`px-2 py-0.5 rounded text-xs font-bold ${
-                                  u.role === "ADMIN"
+                                className={`px-2 py-0.5 rounded text-xs font-bold ${u.role === "ADMIN"
                                     ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                                     : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                                }`}
+                                  }`}
                               >
                                 {u.role}
                               </span>
@@ -473,11 +472,10 @@ export default function AdminPage() {
                             )}
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              u.role === "ADMIN"
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.role === "ADMIN"
                                 ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                                 : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                            }`}
+                              }`}
                           >
                             {u.role}
                           </span>
@@ -558,11 +556,10 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => setAdminType("GOOGLE")}
-                    className={`flex items-center justify-center gap-2 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition ${
-                      adminType === "GOOGLE"
+                    className={`flex items-center justify-center gap-2 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition ${adminType === "GOOGLE"
                         ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm"
                         : "text-slate-400 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <GoogleIcon />
                     Google Account
@@ -570,11 +567,10 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => setAdminType("CREDENTIALS")}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition ${
-                      adminType === "CREDENTIALS"
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition ${adminType === "CREDENTIALS"
                         ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm"
                         : "text-slate-400 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Lock className="w-3.5 h-3.5" />
                     Email & Password
@@ -610,7 +606,7 @@ export default function AdminPage() {
                         value={newAdminName}
                         onChange={(e) => setNewAdminName(e.target.value)}
                         placeholder={
-                          adminType === "GOOGLE" ? "e.g. Aryan Sharma (Optional)" : "Admin Full Name"
+                          adminType === "GOOGLE" ? "e.g. Admin Name (Optional)" : "Admin Full Name"
                         }
                         className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
                       />
