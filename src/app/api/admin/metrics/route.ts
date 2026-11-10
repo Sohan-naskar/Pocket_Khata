@@ -18,7 +18,7 @@ export async function GET() {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
 
-  // 1. Total registered users
+  // 1. Total registered users (Total student & staff accounts created)
   const totalUsers = await prisma.user.count();
 
   // 2. Active users this month (users with at least one transaction created or dated this month)
@@ -32,11 +32,23 @@ export async function GET() {
   });
   const activeUsersThisMonth = activeUserRecords.length;
 
-  // 3. Platform aggregates
-  const totalTransactions = await prisma.transaction.count();
-  const totalLoans = await prisma.loan.count();
+  // 3. New signups this month (Accounts created in the current month)
+  const newSignupsThisMonth = await prisma.user.count({
+    where: {
+      createdAt: {
+        gte: startOfMonth,
+      },
+    },
+  });
 
-  // 4. User list with details and counts
+  // 4. Total platform admins (Total accounts holding the ADMIN role)
+  const totalAdmins = await prisma.user.count({
+    where: {
+      role: "ADMIN",
+    },
+  });
+
+  // 5. User list (CRITICAL PRIVACY: NO WALLET BALANCES, AMOUNTS, OR FINANCIAL DATA)
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -44,12 +56,6 @@ export async function GET() {
       email: true,
       role: true,
       createdAt: true,
-      walletProfile: {
-        select: {
-          onlineBalance: true,
-          cashBalance: true,
-        },
-      },
       _count: {
         select: {
           transactions: true,
@@ -64,8 +70,8 @@ export async function GET() {
     metrics: {
       totalUsers,
       activeUsersThisMonth,
-      totalTransactions,
-      totalLoans,
+      newSignupsThisMonth,
+      totalAdmins,
     },
     users: users.map((u) => ({
       id: u.id,
@@ -73,11 +79,8 @@ export async function GET() {
       email: u.email,
       role: u.role,
       createdAt: u.createdAt,
-      onlineBalance: u.walletProfile?.onlineBalance || 0,
-      cashBalance: u.walletProfile?.cashBalance || 0,
       transactionsCount: u._count.transactions,
       loansCount: u._count.loans,
     })),
   });
 }
-
