@@ -263,22 +263,15 @@ export default function AdminPage() {
               If you believe this is an error, please sign out and log in with your authorized admin account, or ask an existing System Admin to grant you admin privileges.
             </p>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-slate-200 font-medium text-xs sm:text-sm transition min-h-[42px]"
-              >
-                <LogOut className="w-4 h-4 text-slate-400" />
-                Sign In with Admin Account
-              </button>
-              <Link
-                href="/dashboard"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition min-h-[42px] shadow-md shadow-indigo-600/30"
+                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition h-10 shadow-md shadow-indigo-600/30 active:scale-[0.99]"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Return to Dashboard
-              </Link>
+                Return to Login Page
+              </button>
             </div>
           </div>
         )}

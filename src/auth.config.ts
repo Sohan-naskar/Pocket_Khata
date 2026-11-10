@@ -33,7 +33,11 @@ export const authConfig: NextAuthConfig = {
       }
 
       // If user is already logged in, redirect them to dashboard (or /admin for admins)
+      // UNLESS there is an error parameter (e.g. unauthorized admin attempt) that needs to be displayed on /login!
       if (isAuthRoute) {
+        if (nextUrl.searchParams.has("error")) {
+          return true;
+        }
         if (isLoggedIn) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const role = (auth?.user as any)?.role;
@@ -72,12 +76,20 @@ export const authConfig: NextAuthConfig = {
         return Response.redirect(new URL("/dashboard", nextUrl));
       }
 
-      // Admin route authentication check
+      // Admin route authentication and RBAC check
       const isAdminRoute = pathname.startsWith("/admin");
       if (isAdminRoute) {
         if (!isLoggedIn) {
           const callbackUrl = encodeURIComponent(pathname);
           return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const role = (auth?.user as any)?.role;
+        if (role !== "ADMIN") {
+          const userEmail = encodeURIComponent(auth?.user?.email || "");
+          return Response.redirect(
+            new URL(`/login?error=unauthorized&attemptEmail=${userEmail}`, nextUrl)
+          );
         }
         return true;
       }
