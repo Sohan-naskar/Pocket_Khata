@@ -87,7 +87,8 @@ function SignupForm() {
       if (signInRes?.error) {
         router.push("/login");
       } else {
-        router.push(callbackUrl);
+        const destination = role === "ADMIN" ? "/admin" : callbackUrl;
+        router.push(destination);
         router.refresh();
       }
     } catch {

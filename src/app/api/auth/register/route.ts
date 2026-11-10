@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { checkIsAdminEmail } from "@/auth";
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +36,10 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const assignedRole = role === "ADMIN" ? "ADMIN" : "USER";
+    const userCount = await prisma.user.count().catch(() => 0);
+    const isFirstUser = userCount === 0;
+    const shouldBeAdmin = role === "ADMIN" || isFirstUser || checkIsAdminEmail(cleanEmail);
+    const assignedRole = shouldBeAdmin ? "ADMIN" : "USER";
 
     const user = await prisma.user.create({
       data: {
@@ -68,4 +72,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

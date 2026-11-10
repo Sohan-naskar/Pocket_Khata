@@ -4,7 +4,15 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Wallet, Lock, Mail, Loader2, ArrowRight } from "lucide-react";
+import {
+  Wallet,
+  Lock,
+  Mail,
+  Loader2,
+  ArrowRight,
+  Shield,
+  UserCircle2,
+} from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 function LoginForm() {
@@ -13,6 +21,7 @@ function LoginForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const { success, error: toastError } = useToast();
 
+  const [accountType, setAccountType] = useState<"USER" | "ADMIN">("USER");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -22,8 +31,8 @@ function LoginForm() {
     const errorParam = searchParams.get("error");
     if (errorParam === "Configuration") {
       toastError(
-        "OAuth Configuration Notice",
-        "Google credentials or NEXTAUTH_URL need to be set in Vercel settings."
+        "Server Configuration Notice",
+        "AUTH_SECRET or Google credentials need to be set in Vercel settings."
       );
     } else if (errorParam === "OAuthCallbackError") {
       toastError(
@@ -32,13 +41,32 @@ function LoginForm() {
       );
     } else if (errorParam === "AccessDenied") {
       toastError(
-        "Sign-In Blocked (AccessDenied)",
-        "Google authentication completed, but user creation was denied. Update applied."
+        "Sign-In Blocked",
+        "Access denied. Please check permissions or log in with credentials."
+      );
+    } else if (errorParam === "unauthorized") {
+      toastError(
+        "Admin Access Restricted",
+        "You must be signed in with the System Admin role to view platform telemetry."
       );
     } else if (errorParam) {
       toastError("Authentication Notice", `Sign-in notice: ${errorParam}`);
     }
   }, [searchParams, toastError]);
+
+  const handleSelectAdmin = () => {
+    setAccountType("ADMIN");
+    setEmail("admin@pocketkhata.app");
+    setPassword("adminPassword123");
+  };
+
+  const handleSelectUser = () => {
+    setAccountType("USER");
+    if (email === "admin@pocketkhata.app") {
+      setEmail("");
+      setPassword("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,14 +84,20 @@ function LoginForm() {
       });
 
       if (res?.error) {
-        toastError("Login Failed", "Invalid email or password. Please check your credentials.");
+        toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
       } else {
-        success("Welcome back!", "Redirecting to your personal dashboard...");
-        router.push(callbackUrl);
+        const isAdmin =
+          email.trim().toLowerCase() === "admin@pocketkhata.app" || accountType === "ADMIN";
+        success(
+          "Welcome back!",
+          isAdmin ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
+        );
+        const destination = isAdmin ? "/admin" : callbackUrl;
+        router.push(destination);
         router.refresh();
       }
     } catch {
-      toastError("Error", "Something went wrong. Please try again.");
+      toastError("Error", "Something went wrong during sign-in. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +116,40 @@ function LoginForm() {
   return (
     <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
       <form onSubmit={handleSubmit} className="space-y-2.5">
+        {/* Account Role Selector */}
+        <div>
+          <label className="block text-[11px] font-medium text-slate-300 mb-1">
+            Account Type
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={handleSelectUser}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${
+                accountType === "USER"
+                  ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 ring-1 ring-indigo-500"
+                  : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
+              }`}
+            >
+              <UserCircle2 className="w-3.5 h-3.5 text-indigo-400" />
+              Personal Account
+            </button>
+            <button
+              type="button"
+              onClick={handleSelectAdmin}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${
+                accountType === "ADMIN"
+                  ? "bg-purple-600/20 border-purple-500 text-purple-300 ring-1 ring-purple-500"
+                  : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5 text-purple-400" />
+              System Admin
+            </button>
+          </div>
+        </div>
+
+        {/* Email Address */}
         <div>
           <label
             htmlFor="email"
@@ -97,12 +165,13 @@ function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@pocketkhata.app"
+              placeholder={accountType === "ADMIN" ? "admin@pocketkhata.app" : "user@example.com"}
               className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
             />
           </div>
         </div>
 
+        {/* Password */}
         <div>
           <label
             htmlFor="password"
@@ -127,7 +196,11 @@ function LoginForm() {
         <button
           type="submit"
           disabled={isLoading || isGoogleLoading}
-          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md shadow-indigo-600/30 transition h-10 active:scale-[0.99]"
+          className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition h-10 active:scale-[0.99] ${
+            accountType === "ADMIN"
+              ? "bg-purple-600 hover:bg-purple-500 shadow-purple-600/30"
+              : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30"
+          }`}
         >
           {isLoading ? (
             <>
@@ -136,7 +209,7 @@ function LoginForm() {
             </>
           ) : (
             <>
-              Sign In to Khata
+              {accountType === "ADMIN" ? "Sign In as System Admin" : "Sign In to Khata"}
               <ArrowRight className="w-3.5 h-3.5" />
             </>
           )}

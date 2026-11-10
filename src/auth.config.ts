@@ -1,12 +1,21 @@
 import type { NextAuthConfig } from "next-auth";
 
+const FALLBACK_AUTH_SECRET =
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  "pocketkhata-super-secret-jwt-token-key-2026-production-verified-32chars";
+
+if (!process.env.AUTH_SECRET) {
+  process.env.AUTH_SECRET = FALLBACK_AUTH_SECRET;
+}
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = FALLBACK_AUTH_SECRET;
+}
+
 export const authConfig: NextAuthConfig = {
   providers: [],
   trustHost: true,
-  secret:
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    "pocketkhata-super-secret-jwt-token-key-2026-production",
+  secret: FALLBACK_AUTH_SECRET,
   pages: {
     signIn: "/login",
     error: "/login",
@@ -23,9 +32,14 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
-      // If user is already logged in, prevent accessing login/signup and send straight to dashboard
+      // If user is already logged in, redirect them to dashboard (or /admin for admins)
       if (isAuthRoute) {
         if (isLoggedIn) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const role = (auth?.user as any)?.role;
+          if (role === "ADMIN") {
+            return Response.redirect(new URL("/admin", nextUrl));
+          }
           return Response.redirect(new URL("/dashboard", nextUrl));
         }
         return true;
@@ -48,8 +62,13 @@ export const authConfig: NextAuthConfig = {
         return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
       }
 
-      // If logged in and visiting root '/', redirect directly to /dashboard
+      // If logged in and visiting root '/', redirect to /admin if ADMIN or /dashboard
       if (pathname === "/") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const role = (auth?.user as any)?.role;
+        if (role === "ADMIN") {
+          return Response.redirect(new URL("/admin", nextUrl));
+        }
         return Response.redirect(new URL("/dashboard", nextUrl));
       }
 
@@ -83,4 +102,3 @@ export const authConfig: NextAuthConfig = {
     },
   },
 };
-
