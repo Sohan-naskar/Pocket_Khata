@@ -118,11 +118,10 @@ function SignupForm() {
             <button
               type="button"
               onClick={() => setRole("USER")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${
-                role === "USER"
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${role === "USER"
                   ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 ring-1 ring-indigo-500"
                   : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               <UserCircle2 className="w-3.5 h-3.5 text-indigo-400" />
               Personal Account
@@ -130,11 +129,10 @@ function SignupForm() {
             <button
               type="button"
               onClick={() => setRole("ADMIN")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${
-                role === "ADMIN"
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${role === "ADMIN"
                   ? "bg-purple-600/20 border-purple-500 text-purple-300 ring-1 ring-purple-500"
                   : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               <Shield className="w-3.5 h-3.5 text-purple-400" />
               System Admin
@@ -160,7 +158,7 @@ function SignupForm() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Aryan Sharma"
+                placeholder="User Name"
                 className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
               />
             </div>
