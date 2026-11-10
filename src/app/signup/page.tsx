@@ -11,8 +11,6 @@ import {
   User,
   Loader2,
   ArrowRight,
-  Shield,
-  UserCircle2,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -25,7 +23,6 @@ function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"USER" | "ADMIN">("USER");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -62,7 +59,7 @@ function SignupForm() {
           name: name.trim(),
           email: email.trim().toLowerCase(),
           password,
-          role,
+          role: "USER",
           startingOnline: 0,
           startingCash: 0,
         }),
@@ -87,8 +84,7 @@ function SignupForm() {
       if (signInRes?.error) {
         router.push("/login");
       } else {
-        const destination = role === "ADMIN" ? "/admin" : callbackUrl;
-        router.push(destination);
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch {
@@ -110,37 +106,6 @@ function SignupForm() {
   return (
     <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
       <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3">
-        {/* Account Role Selector */}
-        <div>
-          <label className="block text-[11px] font-medium text-slate-300 mb-1">
-            Account Type
-          </label>
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              type="button"
-              onClick={() => setRole("USER")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${role === "USER"
-                  ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 ring-1 ring-indigo-500"
-                  : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
-                }`}
-            >
-              <UserCircle2 className="w-3.5 h-3.5 text-indigo-400" />
-              Personal Account
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("ADMIN")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${role === "ADMIN"
-                  ? "bg-purple-600/20 border-purple-500 text-purple-300 ring-1 ring-purple-500"
-                  : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
-                }`}
-            >
-              <Shield className="w-3.5 h-3.5 text-purple-400" />
-              System Admin
-            </button>
-          </div>
-        </div>
-
         {/* Name and Email side-by-side on sm+ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           {/* Name */}
@@ -241,7 +206,7 @@ function SignupForm() {
           </div>
         </div>
 
-        {/* Google Sign-In Button (In place of Initial Wallet Split) */}
+        {/* Google Sign-In Button */}
         <button
           type="button"
           onClick={handleGoogleSignIn}

@@ -36,10 +36,8 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const userCount = await prisma.user.count().catch(() => 0);
-    const isFirstUser = userCount === 0;
-    const shouldBeAdmin = role === "ADMIN" || isFirstUser || checkIsAdminEmail(cleanEmail);
-    const assignedRole = shouldBeAdmin ? "ADMIN" : "USER";
+    // Public registration strictly creates personal accounts (USER role)
+    const assignedRole = checkIsAdminEmail(cleanEmail) ? "ADMIN" : "USER";
 
     const user = await prisma.user.create({
       data: {
