@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn, signOut, getSession, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import {
   Wallet,
   Lock,
@@ -14,6 +14,7 @@ import {
   UserCircle2,
   ShieldAlert,
   ArrowLeft,
+  X,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -35,6 +36,11 @@ function LoginForm() {
     email: string;
     role?: string;
   } | null>(null);
+
+  // Dev Google Sign-In helper modal when GOOGLE_CLIENT_ID is not configured in .env
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [devGoogleEmail, setDevGoogleEmail] = useState("sohannaskar2304@gmail.com");
+  const [isDevGoogleLoading, setIsDevGoogleLoading] = useState(false);
 
   React.useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -165,6 +171,16 @@ function LoginForm() {
     setAdminLoginError("");
     setUnregisteredError("");
     try {
+      // Check if real Google OAuth is configured in .env
+      const statusRes = await fetch("/api/auth/providers-status").catch(() => null);
+      const statusData = statusRes ? await statusRes.json() : null;
+
+      if (!statusData?.googleConfigured) {
+        setIsGoogleLoading(false);
+        setIsGoogleModalOpen(true);
+        return;
+      }
+
       if (typeof document !== "undefined") {
         document.cookie = "pk_signup_flow=; path=/; max-age=0; SameSite=Lax";
       }
@@ -173,6 +189,60 @@ function LoginForm() {
     } catch {
       toastError("Google Sign-In", "Unable to sign in with Google. Check client credentials.");
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleDevGoogleLogin = async (targetEmail: string) => {
+    setIsDevGoogleLoading(true);
+    try {
+      const clean = targetEmail.trim().toLowerCase();
+      const res = await fetch("/api/auth/dev-google-signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clean, isSignup: false }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.error === "UnauthorizedAccount") {
+          setUnregisteredError(data.message || "Unauthorized Account: This email is not registered.");
+          toastError("Unauthorized Account", data.message || "This email is not registered.");
+          setIsGoogleModalOpen(false);
+          return;
+        }
+        toastError("Sign-In Failed", data.error || "Unable to simulate Google sign-in.");
+        return;
+      }
+
+      // If user selected "System Admin" tab, but their registered role in the DB is NOT ADMIN:
+      if (accountType === "ADMIN" && data.role !== "ADMIN") {
+        setIsGoogleModalOpen(false);
+        setUnauthorizedAccountInfo({
+          email: clean,
+          role: `${data.role} (Personal Account)`,
+        });
+        return;
+      }
+
+      // Sign in using standard credentials flow
+      const signInRes = await signIn("credentials", {
+        email: data.email,
+        password: data.tempPassword,
+        redirect: false,
+      });
+
+      if (signInRes?.error) {
+        toastError("Sign-In Error", "Could not complete simulated Google login.");
+        return;
+      }
+
+      success("Google Sign-In Successful!", "Redirecting to your session...");
+      setIsGoogleModalOpen(false);
+      const destination = data.role === "ADMIN" ? "/admin" : callbackUrl;
+      window.location.href = destination;
+    } catch {
+      toastError("Error", "Network error during simulated Google sign-in.");
+    } finally {
+      setIsDevGoogleLoading(false);
     }
   };
 
@@ -464,6 +534,137 @@ function LoginForm() {
           </Link>
         </p>
       </div>
+
+      {/* Google OAuth Setup / Dev Sign-In Modal */}
+      {isGoogleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-[#111827] border border-slate-700/80 rounded-2xl shadow-2xl p-5 sm:p-6 text-left space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <ShieldAlert className="w-4 h-4 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    Google OAuth Setup Required
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Fix Google Error 401: invalid_client
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGoogleModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Error explanation */}
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs leading-relaxed space-y-1">
+              <p className="font-semibold text-amber-200">Why did Google show Error 401: invalid_client?</p>
+              <p className="text-slate-300 text-[11px]">
+                Google Cloud OAuth credentials (<code className="text-amber-300">GOOGLE_CLIENT_ID</code> and <code className="text-amber-300">GOOGLE_CLIENT_SECRET</code>) are not yet configured in your <code className="text-indigo-300">.env</code> file.
+              </p>
+            </div>
+
+            {/* Option 1: Instant One-Click Login with Google Account */}
+            <div className="p-4 rounded-xl bg-slate-900/90 border border-indigo-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Instant Google Sign-In (Local & Dev)
+                </span>
+                <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                  Ready
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                You can immediately log in as your Google account without setting up Google Cloud Console:
+              </p>
+
+              <div className="space-y-2">
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    value={devGoogleEmail}
+                    onChange={(e) => setDevGoogleEmail(e.target.value)}
+                    placeholder="your-google-email@gmail.com"
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 focus:border-indigo-500 text-xs text-white outline-none h-9"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isDevGoogleLoading}
+                  onClick={() => handleDevGoogleLogin(devGoogleEmail)}
+                  className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition h-9 shadow-md shadow-indigo-600/30 disabled:opacity-60"
+                >
+                  {isDevGoogleLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  )}
+                  Sign In as {devGoogleEmail}
+                </button>
+              </div>
+
+              {/* Quick shortcut pills */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
+                <span className="text-slate-500 text-[10px]">Quick Select:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDevGoogleEmail("sohannaskar2304@gmail.com");
+                    setAccountType("ADMIN");
+                  }}
+                  className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 text-[10px] font-medium"
+                >
+                  sohannaskar2304@gmail.com (System Admin)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDevGoogleEmail("admin@pocketkhata.app");
+                    setAccountType("ADMIN");
+                  }}
+                  className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 text-[10px] font-medium"
+                >
+                  admin@pocketkhata.app (System Admin)
+                </button>
+              </div>
+            </div>
+
+            {/* Option 2: Step-by-Step Google Cloud Setup */}
+            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs space-y-2">
+              <p className="font-semibold text-slate-300 text-[11px]">
+                To Enable Real Google Cloud OAuth:
+              </p>
+              <ol className="list-decimal list-inside text-[11px] text-slate-400 space-y-1">
+                <li>Create an OAuth Client ID at <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="text-indigo-400 underline">Google Cloud Console</a>.</li>
+                <li>Set Authorized Redirect URI to: <code className="text-slate-300 bg-slate-950 px-1 py-0.5 rounded">http://localhost:3000/api/auth/callback/google</code></li>
+                <li>Add credentials to <code className="text-slate-300 bg-slate-950 px-1 py-0.5 rounded">.env</code>:
+                  <div className="mt-1 font-mono text-[10px] bg-slate-950 p-2 rounded text-slate-300 border border-slate-800">
+                    GOOGLE_CLIENT_ID=&quot;your-id.apps.googleusercontent.com&quot;<br />
+                    GOOGLE_CLIENT_SECRET=&quot;GOCSPX-your-secret&quot;
+                  </div>
+                </li>
+              </ol>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsGoogleModalOpen(false)}
+              className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
