@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, getSession } from "next-auth/react";
 import {
   Wallet,
   Lock,
@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Shield,
   UserCircle2,
+  ShieldAlert,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -24,6 +25,7 @@ function LoginForm() {
   const [accountType, setAccountType] = useState<"USER" | "ADMIN">("USER");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adminLoginError, setAdminLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -45,6 +47,7 @@ function LoginForm() {
         "Access denied. Please check permissions or log in with credentials."
       );
     } else if (errorParam === "unauthorized") {
+      setAdminLoginError("Unauthorized: You must be a registered System Admin to access platform telemetry.");
       toastError(
         "Admin Access Restricted",
         "You must be signed in with the System Admin role to view platform telemetry."
@@ -56,10 +59,12 @@ function LoginForm() {
 
   const handleSelectAdmin = () => {
     setAccountType("ADMIN");
+    setAdminLoginError("");
   };
 
   const handleSelectUser = () => {
     setAccountType("USER");
+    setAdminLoginError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,6 +75,7 @@ function LoginForm() {
     }
 
     setIsLoading(true);
+    setAdminLoginError("");
     try {
       const res = await signIn("credentials", {
         email: email.trim().toLowerCase(),
@@ -79,16 +85,32 @@ function LoginForm() {
 
       if (res?.error) {
         toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
-      } else {
-        const isAdmin = accountType === "ADMIN";
-        success(
-          "Welcome back!",
-          isAdmin ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
-        );
-        const destination = isAdmin ? "/admin" : callbackUrl;
-        router.push(destination);
-        router.refresh();
+        setIsLoading(false);
+        return;
       }
+
+      // Verify the user's actual registered role from the newly established session
+      const session = await getSession();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const currentRole = (session?.user as any)?.role || "USER";
+
+      // If user attempted to log in as System Admin, but their account role is NOT ADMIN:
+      if (accountType === "ADMIN" && currentRole !== "ADMIN") {
+        await signOut({ redirect: false });
+        const errMsg = `Access Denied: Account ${email} is not a registered System Administrator. Only registered admin accounts can log in here.`;
+        setAdminLoginError(errMsg);
+        toastError("Unauthorized Admin Login", errMsg);
+        setIsLoading(false);
+        return;
+      }
+
+      success(
+        "Welcome back!",
+        currentRole === "ADMIN" ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
+      );
+      const destination = currentRole === "ADMIN" ? "/admin" : callbackUrl;
+      router.push(destination);
+      router.refresh();
     } catch {
       toastError("Error", "Something went wrong during sign-in. Please try again.");
     } finally {
@@ -98,8 +120,10 @@ function LoginForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    setAdminLoginError("");
     try {
-      await signIn("google", { callbackUrl });
+      const targetUrl = accountType === "ADMIN" ? "/admin" : callbackUrl;
+      await signIn("google", { callbackUrl: targetUrl });
     } catch {
       toastError("Google Sign-In", "Unable to sign in with Google. Check client credentials.");
       setIsGoogleLoading(false);
@@ -141,6 +165,14 @@ function LoginForm() {
             </button>
           </div>
         </div>
+
+        {/* Error Banner for Unauthorized Admin Attempt */}
+        {adminLoginError && (
+          <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+            <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{adminLoginError}</span>
+          </div>
+        )}
 
         {/* Email Address */}
         <div>

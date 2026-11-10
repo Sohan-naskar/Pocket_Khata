@@ -72,14 +72,14 @@ export const authConfig: NextAuthConfig = {
         return Response.redirect(new URL("/dashboard", nextUrl));
       }
 
-      // Admin route RBAC check
+      // Admin route authentication check
       const isAdminRoute = pathname.startsWith("/admin");
       if (isAdminRoute) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const role = (auth?.user as any)?.role;
-        if (role !== "ADMIN") {
-          return Response.redirect(new URL("/dashboard?error=unauthorized", nextUrl));
+        if (!isLoggedIn) {
+          const callbackUrl = encodeURIComponent(pathname);
+          return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
         }
+        return true;
       }
 
       return true;
