@@ -8,10 +8,15 @@
 
 ## 1. Authentication Architecture Overview
 
-PocketKhata implements a strict architectural split between normal student users and platform administrators:
+PocketKhata implements a unified dual-role authentication system with a strict role selector on `/login`:
 
-1. **Normal Users / Students**: Authenticate **ONLY** via Google OAuth on `/login`. No manual password accounts exist for students.
-2. **Platform Administrators**: Authenticate **ONLY** via Manual Email + bcrypt password on the dedicated `/admin/login` page. Google OAuth is strictly prohibited from authenticating Admin accounts.
+1. **Unified Login Portal (`/login`)**:
+   - Contains an **Account Type** selector: **[ Personal Account ]** vs **[ System Admin ]** (styled identically to the reference specifications).
+   - **Personal Account**: Students can authenticate via **Email + Password** or one-click **Sign in with Google**.
+   - **System Admin**: Authorized platform administrators authenticate via **Admin Email + Password**. Google OAuth is blocked for admin accounts.
+   - If an unauthorized account attempts to log in under the System Admin tab, an explicit **403 Access Denied** screen is displayed right on the login page with only one option: **Return to Login Page**.
+2. **Account Creation (`/signup`)**:
+   - Strictly provisions **Personal Accounts (USER)** only. The System Admin account type is removed from signup.
 
 ```
 +-----------------------------------------------------------------------------------+

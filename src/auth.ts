@@ -55,9 +55,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       : []),
     Credentials({
       id: "credentials",
-      name: "Admin Credentials",
+      name: "Credentials",
       credentials: {
-        email: { label: "Admin Email", type: "email" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -72,17 +72,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        // Strictly enforce: ONLY users with role === 'ADMIN' can authenticate via Credentials
-        const isAdmin = user.role === "ADMIN" || checkIsAdminEmail(email);
-        if (!isAdmin) {
-          return null;
-        }
-
         const isValid = await bcrypt.compare(String(credentials.password), user.passwordHash);
         if (!isValid) return null;
 
-        // Ensure database reflects ADMIN role
-        if (user.role !== "ADMIN") {
+        const isAdmin = user.role === "ADMIN" || checkIsAdminEmail(email);
+
+        // Ensure database reflects ADMIN role if verified as admin
+        if (isAdmin && user.role !== "ADMIN") {
           await prisma.user
             .update({
               where: { id: user.id },
@@ -93,9 +89,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return {
           id: user.id,
-          name: user.name || "System Admin",
+          name: user.name || (isAdmin ? "System Admin" : email.split("@")[0]),
           email: user.email,
-          role: "ADMIN",
+          role: isAdmin ? "ADMIN" : user.role,
           image: user.image,
         };
       },

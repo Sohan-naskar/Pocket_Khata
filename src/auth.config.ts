@@ -62,10 +62,10 @@ export const authConfig: NextAuthConfig = {
       if (pathname.startsWith("/admin")) {
         if (!isLoggedIn) {
           const callbackUrl = encodeURIComponent(pathname);
-          return Response.redirect(new URL(`/admin/login?callbackUrl=${callbackUrl}`, nextUrl));
+          return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
         }
         if (userRole !== "ADMIN") {
-          return Response.redirect(new URL("/unauthorized", nextUrl));
+          return Response.redirect(new URL("/login?error=AdminUnauthorized", nextUrl));
         }
         return true;
       }
