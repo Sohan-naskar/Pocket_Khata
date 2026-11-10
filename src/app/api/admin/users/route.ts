@@ -3,49 +3,47 @@ import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
-// POST: Create or provision a System Admin account (Open direct management on localhost)
+// POST: Create a new System Admin account (Manual Email + Password only)
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { name, email, password, isGoogleAccount } = body;
+    const session = await auth().catch(() => null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    }
 
-    if (!email) {
+    const body = await req.json();
+    const { name, email, password } = body;
+
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Email address is required" },
+        { error: "Name, email, and password are required for admin accounts" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters" },
         { status: 400 }
       );
     }
 
     const cleanEmail = String(email).toLowerCase().trim();
 
-    // Standard credential validation if not Google account
-    if (!isGoogleAccount) {
-      if (!name || !password) {
-        return NextResponse.json(
-          { error: "Name, email, and password are required for standard accounts" },
-          { status: 400 }
-        );
-      }
-      if (password.length < 6) {
-        return NextResponse.json(
-          { error: "Password must be at least 6 characters" },
-          { status: 400 }
-        );
-      }
-    }
-
     const existingUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
 
     if (existingUser) {
-      // If it's a Google account or the admin is promoting an existing account
-      if (isGoogleAccount || existingUser.role !== "ADMIN") {
+      if (existingUser.role !== "ADMIN") {
+        const passwordHash = await bcrypt.hash(password, 10);
         const updated = await prisma.user.update({
           where: { id: existingUser.id },
           data: {
             role: "ADMIN",
             name: name?.trim() || existingUser.name,
+            passwordHash,
           },
           select: {
             id: true,
@@ -70,10 +68,7 @@ export async function POST(req: Request) {
       }
     }
 
-    let passwordHash: string | null = null;
-    if (password && password.length >= 6) {
-      passwordHash = await bcrypt.hash(password, 10);
-    }
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const newAdmin = await prisma.user.create({
       data: {
@@ -100,9 +95,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: isGoogleAccount
-          ? `Google account (${cleanEmail}) provisioned as System Admin.`
-          : "New System Admin created successfully.",
+        message: "New System Admin created successfully.",
         user: newAdmin,
       },
       { status: 201 }
@@ -116,10 +109,14 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: Promote or Demote an existing user's role (Open direct management on localhost)
+// PATCH: Promote or Demote an existing user's role (Admin session required)
 export async function PATCH(req: Request) {
   try {
     const session = await auth().catch(() => null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    }
     const body = await req.json();
     const { userId, role } = body;
 
@@ -181,10 +178,14 @@ export async function PATCH(req: Request) {
   }
 }
 
-// DELETE: Permanently delete a user account and all cascading data
+// DELETE: Permanently delete a user account and all cascading data (Admin session required)
 export async function DELETE(req: Request) {
   try {
     const session = await auth().catch(() => null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    }
     const body = await req.json();
     const { userId } = body;
 

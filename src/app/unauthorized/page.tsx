@@ -50,13 +50,13 @@ export default function UnauthorizedPage() {
           {/* Heading & Badge */}
           <div className="space-y-2">
             <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              403 &bull; Unauthorized Access
+              403 &bull; Unauthorized Account
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              403 - Unauthorized Access
+              Access Denied
             </h1>
             <p className="text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
-              You do not have administrative privileges to view this portal.
+              Only registered <strong className="text-purple-400">System Administrators</strong> can log into and access the Admin Platform Telemetry page.
             </p>
           </div>
 
@@ -90,27 +90,18 @@ export default function UnauthorizedPage() {
 
           {/* Informational Guidance */}
           <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-            This section is strictly restricted to platform administrators. If you believe this is a mistake, please contact an existing System Administrator to request elevated access.
+            If you believe this is an error, please sign out and log in with your authorized admin account, or ask an existing System Admin to grant you admin privileges.
           </p>
 
-          {/* Action Buttons */}
-          <div className="pt-2 space-y-2.5">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition h-11 shadow-md shadow-indigo-600/30 active:scale-[0.99]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to My Dashboard
-            </button>
-
+          {/* Single Action Button: Return to Login Page */}
+          <div className="pt-2">
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800/90 text-slate-400 hover:text-slate-200 text-xs font-medium transition h-9"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition h-11 shadow-md shadow-indigo-600/30 active:scale-[0.99]"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              Sign Out & Switch Account
+              <ArrowLeft className="w-4 h-4" />
+              Return to Login Page
             </button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -6,6 +7,12 @@ export const dynamic = "force-dynamic";
 // GET: Fetch user's transactions and loans with STRICT FINANCIAL PRIVACY (no monetary amounts)
 export async function GET(req: Request) {
   try {
+    const session = await auth().catch(() => null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
 
@@ -79,9 +86,15 @@ export async function GET(req: Request) {
   }
 }
 
-// DELETE: Remove transactions or loans from a user account (bulk or individual)
+// DELETE: Remove transactions or loans from a user account (Admin session required)
 export async function DELETE(req: Request) {
   try {
+    const session = await auth().catch(() => null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    }
+
     const body = await req.json();
     const { userId, action, itemId } = body;
 

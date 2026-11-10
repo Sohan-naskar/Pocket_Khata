@@ -2,176 +2,80 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import {
   Wallet,
-  Lock,
-  Mail,
   Loader2,
+  ShieldAlert,
   ArrowRight,
   Shield,
-  UserCircle2,
-  ShieldAlert,
-  ArrowLeft,
+  CheckCircle2,
   X,
+  Mail,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
-function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { data: session } = useSession();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  const { success, error: toastError } = useToast();
+function GoogleIcon() {
+  return (
+    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </svg>
+  );
+}
 
-  const [accountType, setAccountType] = useState<"USER" | "ADMIN">("USER");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [adminLoginError, setAdminLoginError] = useState("");
-  const [unregisteredError, setUnregisteredError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const urlError = searchParams.get("error");
+  const { error: toastError, success } = useToast();
+
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [unauthorizedAccountInfo, setUnauthorizedAccountInfo] = useState<{
-    email: string;
-    role?: string;
-  } | null>(null);
+  const [errorMessage, setErrorMessage] = useState(() => {
+    if (urlError === "AdminMustUsePassword") {
+      return "Admin accounts cannot use Google sign-in. Please log in at /admin/login.";
+    }
+    if (urlError === "OAuthCallbackError") {
+      return "The Google authentication request was cancelled or mismatched. Please try again.";
+    }
+    return "";
+  });
 
   // Dev Google Sign-In helper modal when GOOGLE_CLIENT_ID is not configured in .env
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [devGoogleEmail, setDevGoogleEmail] = useState("sohannaskar2304@gmail.com");
+  const [devGoogleEmail, setDevGoogleEmail] = useState("student@pocketkhata.app");
   const [isDevGoogleLoading, setIsDevGoogleLoading] = useState(false);
 
   React.useEffect(() => {
-    const errorParam = searchParams.get("error");
-    const attemptEmail = searchParams.get("attemptEmail");
-
-    if (errorParam === "UnauthorizedAccount") {
-      const msg =
-        "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
-      setUnregisteredError(msg);
-      toastError("Unauthorized Account", msg);
-    } else if (errorParam === "unauthorized" || errorParam === "AccessDenied") {
-      setUnauthorizedAccountInfo({
-        email: attemptEmail || session?.user?.email || "sohannaskar2004@gmail.com",
-        role: "USER (Personal Account)",
-      });
-    } else if (errorParam === "Configuration") {
-      toastError(
-        "Server Configuration Notice",
-        "AUTH_SECRET or Google credentials need to be set in Vercel settings."
+    if (urlError === "AdminMustUsePassword") {
+      setErrorMessage(
+        "Admin accounts cannot use Google sign-in. Please log in at /admin/login."
       );
-    } else if (errorParam === "OAuthCallbackError") {
-      toastError(
-        "Google Sign-In Cancelled",
-        "The Google authorization request was cancelled or mismatched. Please verify redirect URIs."
-      );
-    } else if (errorParam) {
-      toastError("Authentication Notice", `Sign-in notice: ${errorParam}`);
     }
-  }, [searchParams, session?.user?.email, toastError]);
-
-  const handleSelectAdmin = () => {
-    setAccountType("ADMIN");
-    setAdminLoginError("");
-    setUnregisteredError("");
-  };
-
-  const handleSelectUser = () => {
-    setAccountType("USER");
-    setAdminLoginError("");
-    setUnregisteredError("");
-  };
-
-  const handleReturnToLogin = async () => {
-    try {
-      await signOut({ redirect: false });
-    } catch {
-      // Ignore errors during logout
-    }
-    setUnauthorizedAccountInfo(null);
-    setAccountType("USER");
-    setAdminLoginError("");
-    setUnregisteredError("");
-    setEmail("");
-    setPassword("");
-    router.replace("/login");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      toastError("Missing Fields", "Please enter your email and password.");
-      return;
-    }
-
-    setIsLoading(true);
-    setAdminLoginError("");
-    setUnregisteredError("");
-    try {
-      const cleanEmail = email.trim().toLowerCase();
-
-      // Check user registration & role directly from database
-      const verifyRes = await fetch("/api/auth/verify-account", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail }),
-      }).catch(() => null);
-
-      const verifyData = verifyRes ? await verifyRes.json() : null;
-
-      if (!verifyData?.exists) {
-        const unauthorizedMsg =
-          "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
-        setUnregisteredError(unauthorizedMsg);
-        toastError("Unauthorized Account", unauthorizedMsg);
-        setIsLoading(false);
-        return;
-      }
-
-      const actualRole = verifyData.role || "USER";
-
-      // If user selected "System Admin" tab, but their registered role in the DB is NOT ADMIN:
-      if (accountType === "ADMIN" && actualRole !== "ADMIN") {
-        setUnauthorizedAccountInfo({
-          email: cleanEmail,
-          role: `${actualRole} (Personal Account)`,
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const res = await signIn("credentials", {
-        email: cleanEmail,
-        password,
-        redirect: false,
-      });
-
-      if (res?.error) {
-        toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
-        setIsLoading(false);
-        return;
-      }
-
-      success(
-        "Welcome back!",
-        actualRole === "ADMIN" ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
-      );
-      const destination = actualRole === "ADMIN" ? "/admin" : callbackUrl;
-      window.location.href = destination;
-    } catch {
-      toastError("Error", "Something went wrong during sign-in. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [urlError]);
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    setAdminLoginError("");
-    setUnregisteredError("");
+    setErrorMessage("");
+
     try {
-      // Check if real Google OAuth is configured in .env
+      // Check if real Google OAuth credentials are configured in .env
       const statusRes = await fetch("/api/auth/providers-status").catch(() => null);
       const statusData = statusRes ? await statusRes.json() : null;
 
@@ -181,52 +85,43 @@ function LoginForm() {
         return;
       }
 
-      if (typeof document !== "undefined") {
-        document.cookie = "pk_signup_flow=; path=/; max-age=0; SameSite=Lax";
-      }
-      const targetUrl = accountType === "ADMIN" ? "/admin" : callbackUrl;
-      await signIn("google", { callbackUrl: targetUrl });
+      await signIn("google", { callbackUrl });
     } catch {
-      toastError("Google Sign-In", "Unable to sign in with Google. Check client credentials.");
+      toastError("Google Sign-In", "Unable to initiate Google sign-in. Please try again.");
       setIsGoogleLoading(false);
     }
   };
 
   const handleDevGoogleLogin = async (targetEmail: string) => {
+    if (!targetEmail) {
+      toastError("Missing Email", "Please enter an email address.");
+      return;
+    }
+
     setIsDevGoogleLoading(true);
     try {
       const clean = targetEmail.trim().toLowerCase();
       const res = await fetch("/api/auth/dev-google-signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: clean, isSignup: false }),
+        body: JSON.stringify({ email: clean, isSignup: true }),
       });
       const data = await res.json();
+
       if (!res.ok) {
-        if (data.error === "UnauthorizedAccount") {
-          setUnregisteredError(data.message || "Unauthorized Account: This email is not registered.");
-          toastError("Unauthorized Account", data.message || "This email is not registered.");
+        if (data.error === "AdminMustUsePassword") {
           setIsGoogleModalOpen(false);
+          setErrorMessage(data.message || "Admin accounts cannot use Google sign-in. Please log in at /admin/login.");
           return;
         }
         toastError("Sign-In Failed", data.error || "Unable to simulate Google sign-in.");
         return;
       }
 
-      // If user selected "System Admin" tab, but their registered role in the DB is NOT ADMIN:
-      if (accountType === "ADMIN" && data.role !== "ADMIN") {
-        setIsGoogleModalOpen(false);
-        setUnauthorizedAccountInfo({
-          email: clean,
-          role: `${data.role} (Personal Account)`,
-        });
-        return;
-      }
-
-      // Sign in using standard credentials flow
-      const signInRes = await signIn("credentials", {
+      // Complete sign-in
+      const signInRes = await signIn("student-dev-google", {
         email: data.email,
-        password: data.tempPassword,
+        devKey: data.devKey,
         redirect: false,
       });
 
@@ -235,10 +130,9 @@ function LoginForm() {
         return;
       }
 
-      success("Google Sign-In Successful!", "Redirecting to your session...");
+      success("Welcome!", "Signing you into your Khata...");
       setIsGoogleModalOpen(false);
-      const destination = data.role === "ADMIN" ? "/admin" : callbackUrl;
-      window.location.href = destination;
+      window.location.href = callbackUrl || "/dashboard";
     } catch {
       toastError("Error", "Network error during simulated Google sign-in.");
     } finally {
@@ -246,446 +140,207 @@ function LoginForm() {
     }
   };
 
-  // 403 Access Denied View for Unauthorized Accounts on the Login Page
-  if (unauthorizedAccountInfo) {
-    return (
-      <div className="space-y-4">
-        {/* Branding header */}
-        <div className="text-center mb-1">
-          <button
-            type="button"
-            onClick={handleReturnToLogin}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 transition shadow-md"
-          >
-            <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white shadow shadow-indigo-600/30">
-              <Wallet className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-base font-bold tracking-tight text-white">
-              Pocket<span className="text-indigo-400">Khata</span>
-            </span>
-          </button>
-        </div>
-
-        {/* Access Denied Card matching user's exact specification */}
-        <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
-          {/* Red Glowing Shield */}
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto shadow-xl shadow-rose-500/10">
-            <ShieldAlert className="w-8 h-8" />
-          </div>
-
-          {/* Badge & Heading */}
-          <div className="space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              403 &bull; Unauthorized Account
-            </span>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">
-              Access Denied
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
-              Only registered <strong className="text-purple-400 font-semibold">System Administrators</strong> can log into and access the Admin Platform Telemetry page.
-            </p>
-          </div>
-
-          {/* Account Details Box */}
-          <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-left space-y-2.5 text-xs">
-            <div className="flex items-center justify-between text-slate-400">
-              <span>Signed In As:</span>
-              <span className="font-mono text-white font-medium truncate max-w-[200px] sm:max-w-[230px]">
-                {unauthorizedAccountInfo.email}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-slate-400">
-              <span>Account Role:</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                {unauthorizedAccountInfo.role || "USER (Personal Account)"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-slate-400 pt-2 border-t border-slate-800/80">
-              <span>Admin Status:</span>
-              <span className="text-rose-400 font-semibold">Not Authorized</span>
-            </div>
-          </div>
-
-          {/* Explanatory Message */}
-          <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-            If you believe this is an error, please sign out and log in with your authorized admin account, or ask an existing System Admin to grant you admin privileges.
-          </p>
-
-          {/* ONLY ONE OPTION: Return to Login Page */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={handleReturnToLogin}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition h-10 shadow-md shadow-indigo-600/30 active:scale-[0.99]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Return to Login Page
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <div className="text-center mb-2 sm:mb-3">
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 transition mb-1.5 shadow-md"
-        >
-          <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white shadow shadow-indigo-600/30">
-            <Wallet className="w-3.5 h-3.5" />
-          </div>
-          <span className="text-base font-bold tracking-tight text-white">
-            Pocket<span className="text-indigo-400">Khata</span>
-          </span>
-        </Link>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-          Log in to your Khata
+    <div className="w-full max-w-md space-y-6">
+      {/* Brand & Intro */}
+      <div className="text-center space-y-2">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white mx-auto shadow-xl shadow-indigo-600/30">
+          <Wallet className="w-6 h-6" />
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          Pocket<span className="text-indigo-400">Khata</span>
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Track daily UPI & cash expenses and recover pending Udhaar.
+        <p className="text-xs sm:text-sm text-slate-400 max-w-xs mx-auto">
+          Student personal finance, dual-wallet auto ledger & peer Udhaar tracker.
         </p>
       </div>
 
-      <div className="bg-[#111827]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-        <form onSubmit={handleSubmit} className="space-y-2.5">
-          {/* Account Role Selector */}
-          <div>
-            <label className="block text-[11px] font-medium text-slate-300 mb-1">
-              Account Type
-            </label>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={handleSelectUser}
-                className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${
-                  accountType === "USER"
-                    ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 ring-1 ring-indigo-500"
-                    : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
-                }`}
-              >
-                <UserCircle2 className="w-3.5 h-3.5 text-indigo-400" />
-                Personal Account
-              </button>
-              <button
-                type="button"
-                onClick={handleSelectAdmin}
-                className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg border text-xs font-semibold transition h-9 ${
-                  accountType === "ADMIN"
-                    ? "bg-purple-600/20 border-purple-500 text-purple-300 ring-1 ring-purple-500"
-                    : "bg-slate-900 border-slate-700/80 text-slate-400 hover:text-white"
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5 text-purple-400" />
-                System Admin
-              </button>
-            </div>
-          </div>
-
-          {/* Explicit Red Alert Banner for Unauthorized Account */}
-          {unregisteredError && (
-            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in duration-200">
-              <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold text-rose-200">Unauthorized Account</p>
-                <p className="leading-relaxed text-rose-300/90 text-xs">
-                  {unregisteredError}
-                </p>
-                <div className="pt-1">
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-300 underline underline-offset-2 hover:text-white"
-                  >
-                    Create an account now &rarr;
-                  </Link>
-                </div>
+      {/* Main Student Login Card */}
+      <div className="bg-[#111827]/90 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl space-y-5">
+        {/* Admin Error Alert Banner */}
+        {errorMessage && (
+          <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/60 text-xs text-amber-200 space-y-2 animate-in fade-in duration-200">
+            <div className="flex items-start gap-2.5">
+              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-semibold block text-amber-100">
+                  {urlError === "AdminMustUsePassword"
+                    ? "Administrator Notice"
+                    : "Authentication Alert"}
+                </strong>
+                <span>{errorMessage}</span>
               </div>
             </div>
-          )}
 
-          {/* Error Banner for Unauthorized Admin Attempt */}
-          {adminLoginError && (
-            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
-              <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <span className="leading-relaxed">{adminLoginError}</span>
-            </div>
-          )}
-
-          {/* Email Address */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-[11px] font-medium text-slate-300 mb-1"
-            >
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={accountType === "ADMIN" ? "admin@example.com" : "user@example.com"}
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
-              />
-            </div>
+            {urlError === "AdminMustUsePassword" && (
+              <div className="pt-1">
+                <Link
+                  href="/admin/login"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 hover:text-white underline underline-offset-2 transition"
+                >
+                  <Shield className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Go to Administrator Login &rarr;</span>
+                </Link>
+              </div>
+            )}
           </div>
+        )}
 
-          {/* Password */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-[11px] font-medium text-slate-300 mb-1"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
-              />
-            </div>
-          </div>
+        <div className="space-y-1">
+          <h2 className="text-base font-bold text-white">Student Sign-In</h2>
+          <p className="text-xs text-slate-400">
+            One-click authentication using your Google account.
+          </p>
+        </div>
 
+        {/* Primary CTA: Large "Continue with Google" Button */}
+        <div>
           <button
-            type="submit"
-            disabled={isLoading || isGoogleLoading}
-            className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition h-10 active:scale-[0.99] ${
-              accountType === "ADMIN"
-                ? "bg-purple-600 hover:bg-purple-500 shadow-purple-600/30"
-                : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30"
-            }`}
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-semibold text-sm transition shadow-lg shadow-white/10 active:scale-[0.99] disabled:opacity-75 min-h-[48px]"
           >
-            {isLoading ? (
+            {isGoogleLoading ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Verifying...
+                <Loader2 className="w-5 h-5 animate-spin text-slate-700" />
+                <span>Connecting with Google...</span>
               </>
             ) : (
               <>
-                {accountType === "ADMIN" ? "Sign In as System Admin" : "Sign In to Khata"}
-                <ArrowRight className="w-3.5 h-3.5" />
+                <GoogleIcon />
+                <span>Continue with Google</span>
               </>
             )}
           </button>
-        </form>
-
-        {/* Divider */}
-        <div className="relative my-2.5 sm:my-3">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-800" />
-          </div>
-          <div className="relative flex justify-center text-[10px] uppercase">
-            <span className="bg-[#111827] px-2.5 text-slate-500 tracking-wider">
-              Or continue with
-            </span>
-          </div>
         </div>
 
-        {/* Google OAuth Button */}
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={isGoogleLoading || isLoading}
-          className="w-full flex items-center justify-center gap-2.5 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 hover:border-slate-600 text-slate-200 text-xs sm:text-sm font-medium transition h-10"
-        >
-          {isGoogleLoading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
-          ) : (
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
-            </svg>
-          )}
-          Continue with Google
-        </button>
-
-        <p className="text-center text-[11px] text-slate-400 mt-2.5">
-          New to PocketKhata?{" "}
-          <Link
-            href="/signup"
-            className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-2"
-          >
-            Create account
-          </Link>
-        </p>
+        {/* Value Prop Badges */}
+        <div className="pt-3 border-t border-slate-800/80 space-y-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Dual-wallet balance tracking (Online UPI + Physical Cash)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Peer-to-peer Udhaar loans & 1-tap reminders</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Strict chronological DD-MM-YYYY day ledger</span>
+          </div>
+        </div>
       </div>
 
-      {/* Google OAuth Setup / Dev Sign-In Modal */}
+      {/* Subtle Footer Link to Staff / Admin Portal */}
+      <div className="text-center pt-2">
+        <Link
+          href="/admin/login"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-purple-400 transition"
+        >
+          <Shield className="w-3.5 h-3.5 text-purple-400" />
+          <span>Staff / Admin Portal &rarr;</span>
+        </Link>
+      </div>
+
+      {/* Local Dev Simulated Google Modal (When GOOGLE_CLIENT_ID is not configured in .env) */}
       {isGoogleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-[#111827] border border-slate-700/80 rounded-2xl shadow-2xl p-5 sm:p-6 text-left space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                  <ShieldAlert className="w-4 h-4 text-amber-400" />
-                </div>
+              <div className="flex items-center gap-2">
+                <GoogleIcon />
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-white">
-                    Google OAuth Setup Required
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Fix Google Error 401: invalid_client
-                  </p>
+                  <h3 className="text-base font-bold text-white">Google Sign-In (Local Dev)</h3>
+                  <p className="text-[11px] text-slate-400">Simulate one-click student login</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsGoogleModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Error explanation */}
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs leading-relaxed space-y-1">
-              <p className="font-semibold text-amber-200">Why did Google show Error 401: invalid_client?</p>
-              <p className="text-slate-300 text-[11px]">
-                Google Cloud OAuth credentials (<code className="text-amber-300">GOOGLE_CLIENT_ID</code> and <code className="text-amber-300">GOOGLE_CLIENT_SECRET</code>) are not yet configured in your <code className="text-indigo-300">.env</code> file.
-              </p>
+            <div className="p-3 rounded-xl bg-blue-950/30 border border-blue-900/40 text-xs text-blue-200 flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <span>
+                Real Google OAuth credentials are not set in <code>.env</code>. Enter any student email to simulate instant Google authentication.
+              </span>
             </div>
 
-            {/* Option 1: Instant One-Click Login with Google Account */}
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-indigo-500/30 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  Instant Google Sign-In (Local & Dev)
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-                  Ready
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                You can immediately log in as your Google account without setting up Google Cloud Console:
-              </p>
-
-              <div className="space-y-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleDevGoogleLogin(devGoogleEmail);
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                  Student Email
+                </label>
                 <div className="relative">
                   <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
+                    required
                     value={devGoogleEmail}
                     onChange={(e) => setDevGoogleEmail(e.target.value)}
-                    placeholder="your-google-email@gmail.com"
-                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 focus:border-indigo-500 text-xs text-white outline-none h-9"
+                    placeholder="student@example.com"
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
                   />
                 </div>
+              </div>
 
+              <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
+                  onClick={() => setIsGoogleModalOpen(false)}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
                   disabled={isDevGoogleLoading}
-                  onClick={() => handleDevGoogleLogin(devGoogleEmail)}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition h-9 shadow-md shadow-indigo-600/30 disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-xs font-semibold text-white shadow-md shadow-indigo-600/30 transition"
                 >
                   {isDevGoogleLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Authenticating...</span>
+                    </>
                   ) : (
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Sign In as Student</span>
                   )}
-                  Sign In as {devGoogleEmail}
                 </button>
               </div>
-
-              {/* Quick shortcut pills */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
-                <span className="text-slate-500 text-[10px]">Quick Select:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDevGoogleEmail("sohannaskar2304@gmail.com");
-                    setAccountType("ADMIN");
-                  }}
-                  className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 text-[10px] font-medium"
-                >
-                  sohannaskar2304@gmail.com (System Admin)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDevGoogleEmail("admin@pocketkhata.app");
-                    setAccountType("ADMIN");
-                  }}
-                  className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 text-[10px] font-medium"
-                >
-                  admin@pocketkhata.app (System Admin)
-                </button>
-              </div>
-            </div>
-
-            {/* Option 2: Step-by-Step Google Cloud Setup */}
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs space-y-2">
-              <p className="font-semibold text-slate-300 text-[11px]">
-                To Enable Real Google Cloud OAuth:
-              </p>
-              <ol className="list-decimal list-inside text-[11px] text-slate-400 space-y-1">
-                <li>Create an OAuth Client ID at <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="text-indigo-400 underline">Google Cloud Console</a>.</li>
-                <li>Set Authorized Redirect URI to: <code className="text-slate-300 bg-slate-950 px-1 py-0.5 rounded">http://localhost:3000/api/auth/callback/google</code></li>
-                <li>Add credentials to <code className="text-slate-300 bg-slate-950 px-1 py-0.5 rounded">.env</code>:
-                  <div className="mt-1 font-mono text-[10px] bg-slate-950 p-2 rounded text-slate-300 border border-slate-800">
-                    GOOGLE_CLIENT_ID=&quot;your-id.apps.googleusercontent.com&quot;<br />
-                    GOOGLE_CLIENT_SECRET=&quot;GOCSPX-your-secret&quot;
-                  </div>
-                </li>
-              </ol>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsGoogleModalOpen(false)}
-              className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
-            >
-              Close
-            </button>
+            </form>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-3 py-3 sm:py-6 bg-[#090D16]">
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(79,70,229,0.15),rgba(255,255,255,0))]" />
-
-      <div className="w-full max-w-md relative z-10">
-        <Suspense
-          fallback={
-            <div className="p-6 rounded-2xl bg-[#111827] border border-slate-800 text-center">
-              <Loader2 className="w-5 h-5 animate-spin text-indigo-400 mx-auto" />
-              <p className="text-xs text-slate-400 mt-2">Loading login...</p>
-            </div>
-          }
-        >
-          <LoginForm />
-        </Suspense>
-      </div>
+    <div className="min-h-screen bg-[#090D16] text-[#F9FAFB] flex flex-col justify-center items-center p-4 relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 text-slate-400 text-sm">
+            <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+            <span>Loading PocketKhata...</span>
+          </div>
+        }
+      >
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }

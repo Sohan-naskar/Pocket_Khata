@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-// GET: Direct access open telemetry metrics for local administration (No Auth required)
+// GET: Platform telemetry metrics for System Administrators (Admin session required)
 // STRICT FINANCIAL PRIVACY ENFORCED: Personal monetary data, wallet balances, and amounts are completely excluded.
 export async function GET() {
+  const session = await auth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!session?.user?.id || (session.user as any).role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+  }
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
 

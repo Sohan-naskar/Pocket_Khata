@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Running PocketKhata Database Seed & Bootstrap...");
 
-  const adminEmail = (process.env.ADMIN_INIT_EMAIL || "admin@pocketkhata.app").toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_INIT_EMAIL || "sohannaskar2304@gmail.com").toLowerCase().trim();
   const rawAdminPassword = process.env.ADMIN_INIT_PASSWORD || "adminPassword123";
   const hashedAdminPassword = await bcrypt.hash(rawAdminPassword, 10);
 
@@ -18,7 +18,7 @@ async function main() {
       role: "ADMIN",
     },
     create: {
-      name: "System Administrator",
+      name: "Sohan Naskar",
       email: adminEmail,
       passwordHash: hashedAdminPassword,
       role: "ADMIN",
@@ -32,32 +32,8 @@ async function main() {
     },
   });
 
-  console.log("✅ Initial Admin successfully seeded. You can now log into /admin.");
+  console.log("✅ Initial Admin successfully seeded. You can now log into /admin/login.");
   console.log(`   Admin Email: ${adminUser.email}`);
-
-  // 2. Also ensure configured personal admin (Sohan Naskar) has admin password
-  if (adminEmail !== "sohannaskar2304@gmail.com") {
-    await prisma.user.upsert({
-      where: { email: "sohannaskar2304@gmail.com" },
-      update: {
-        passwordHash: hashedAdminPassword,
-        role: "ADMIN",
-      },
-      create: {
-        name: "Sohan Naskar",
-        email: "sohannaskar2304@gmail.com",
-        passwordHash: hashedAdminPassword,
-        role: "ADMIN",
-        walletProfile: {
-          create: {
-            onlineBalance: 0,
-            cashBalance: 0,
-            currency: "INR",
-          },
-        },
-      },
-    });
-  }
 
   // 3. Ensure default demo user exists for immediate evaluation
   const demoEmail = "user@pocketkhata.app";

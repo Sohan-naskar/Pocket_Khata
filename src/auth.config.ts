@@ -15,7 +15,6 @@ if (!process.env.NEXTAUTH_SECRET) {
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  if (clean === "admin@pocketkhata.app") return true;
   if (clean === "sohannaskar2304@gmail.com") return true;
   if (process.env.ADMIN_INIT_EMAIL && process.env.ADMIN_INIT_EMAIL.toLowerCase().trim() === clean) return true;
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === clean) return true;
@@ -37,31 +36,55 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userRole = (auth?.user as any)?.role;
       const { pathname } = nextUrl;
 
-      // 1. Completely public routes:
-      // - /admin & /admin/* (Direct-access open telemetry portal, NO authentication required)
-      // - /api/admin/* (Direct telemetry data APIs)
-      // - /api/auth/* (NextAuth endpoints)
-      // - /unauthorized, /icon.svg
-      const isAdminRoute = pathname.startsWith("/admin");
-      const isAdminApi = pathname.startsWith("/api/admin");
-      const isAuthApi = pathname.startsWith("/api/auth");
-      if (isAdminRoute || isAdminApi || isAuthApi || pathname === "/unauthorized") {
+      // 1. NextAuth endpoints, static assets, favicon, icon
+      if (
+        pathname.startsWith("/api/auth") ||
+        pathname === "/unauthorized" ||
+        pathname === "/icon.svg" ||
+        pathname === "/favicon.ico"
+      ) {
         return true;
       }
 
-      // 2. Auth routes (/login, /signup)
-      const isAuthRoute = pathname === "/login" || pathname === "/signup";
-      if (isAuthRoute) {
+      // 2. Dedicated Admin Login Route (/admin/login)
+      if (pathname === "/admin/login") {
+        if (isLoggedIn && userRole === "ADMIN") {
+          return Response.redirect(new URL("/admin", nextUrl));
+        }
+        return true;
+      }
+
+      // 3. Admin Protected Routes (/admin & /admin/*)
+      if (pathname.startsWith("/admin")) {
+        if (!isLoggedIn) {
+          const callbackUrl = encodeURIComponent(pathname);
+          return Response.redirect(new URL(`/admin/login?callbackUrl=${callbackUrl}`, nextUrl));
+        }
+        if (userRole !== "ADMIN") {
+          return Response.redirect(new URL("/unauthorized", nextUrl));
+        }
+        return true;
+      }
+
+      // 4. Admin API Protection (/api/admin/*)
+      if (pathname.startsWith("/api/admin")) {
+        if (!isLoggedIn || userRole !== "ADMIN") {
+          return Response.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+        }
+        return true;
+      }
+
+      // 5. Student / User Auth Routes (/login, /signup)
+      if (pathname === "/login" || pathname === "/signup") {
         if (nextUrl.searchParams.has("error")) {
           return true;
         }
         if (isLoggedIn) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const role = (auth?.user as any)?.role;
-          const email = auth?.user?.email;
-          if (role === "ADMIN" || checkIsAdminEmail(email)) {
+          if (userRole === "ADMIN") {
             return Response.redirect(new URL("/admin", nextUrl));
           }
           return Response.redirect(new URL("/dashboard", nextUrl));
@@ -69,34 +92,45 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
-      // 3. User account protection:
-      // All student user routes (/dashboard, /transactions, /udhaar, /analytics, /wallet-settings, etc.)
-      // strictly require full authentication.
-      if (!isLoggedIn) {
-        // Return 401 JSON for unauthenticated user API requests
-        if (pathname.startsWith("/api/")) {
-          return Response.json({ error: "Unauthorized" }, { status: 401 });
+      // 6. Student Protected Routes (/dashboard, /transactions, /udhaar, /analytics, /wallet-settings, etc.)
+      const isStudentRoute =
+        pathname === "/" ||
+        pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/transactions") ||
+        pathname.startsWith("/udhaar") ||
+        pathname.startsWith("/analytics") ||
+        pathname.startsWith("/wallet-settings") ||
+        pathname.startsWith("/day-ledger") ||
+        pathname.startsWith("/udhaar-tracker") ||
+        pathname.startsWith("/monthly-analytics");
+
+      if (isStudentRoute) {
+        if (!isLoggedIn) {
+          if (pathname === "/") {
+            return Response.redirect(new URL("/login", nextUrl));
+          }
+          const callbackUrl = encodeURIComponent(pathname);
+          return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
         }
 
-        // For root homepage "/", redirect directly to /login
-        if (pathname === "/") {
-          return Response.redirect(new URL("/login", nextUrl));
-        }
-
-        // For all protected user routes, redirect to login with callbackUrl
-        const callbackUrl = encodeURIComponent(pathname);
-        return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
-      }
-
-      // If logged in and visiting root '/', redirect to /dashboard (or /admin for admins)
-      if (pathname === "/") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const role = (auth?.user as any)?.role;
-        const email = auth?.user?.email;
-        if (role === "ADMIN" || checkIsAdminEmail(email)) {
+        // If an Admin account visits student routes, redirect them to /admin
+        if (userRole === "ADMIN") {
           return Response.redirect(new URL("/admin", nextUrl));
         }
-        return Response.redirect(new URL("/dashboard", nextUrl));
+
+        if (pathname === "/") {
+          return Response.redirect(new URL("/dashboard", nextUrl));
+        }
+
+        return true;
+      }
+
+      // All other API routes require authentication
+      if (pathname.startsWith("/api/")) {
+        if (!isLoggedIn) {
+          return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        return true;
       }
 
       return true;

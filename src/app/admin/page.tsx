@@ -73,29 +73,6 @@ interface UserDetailedLoan {
   createdAt: string;
 }
 
-function GoogleIcon() {
-  return (
-    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-      <path
-        fill="#4285F4"
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-      />
-    </svg>
-  );
-}
-
 export default function AdminPage() {
   const { data: session } = useSession();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,7 +89,6 @@ export default function AdminPage() {
 
   // Modal State for "Add New Admin"
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [adminType, setAdminType] = useState<"GOOGLE" | "CREDENTIALS">("GOOGLE");
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
@@ -164,23 +140,17 @@ export default function AdminPage() {
     fetchAdminData();
   }, []);
 
-  // Create New Admin Handler
+  // Create New Admin Handler (Email + Password only)
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAdminEmail) {
-      toastError("Missing Email", "Please enter the admin's email address.");
+    if (!newAdminEmail || !newAdminName || !newAdminPassword) {
+      toastError("Missing Information", "Please enter the admin's name, email, and password.");
       return;
     }
 
-    if (adminType === "CREDENTIALS") {
-      if (!newAdminName) {
-        toastError("Missing Name", "Please enter the admin's full name.");
-        return;
-      }
-      if (!newAdminPassword || newAdminPassword.length < 6) {
-        toastError("Weak Password", "Password must be at least 6 characters.");
-        return;
-      }
+    if (newAdminPassword.length < 6) {
+      toastError("Weak Password", "Password must be at least 6 characters.");
+      return;
     }
 
     setIsSubmittingAdmin(true);
@@ -189,10 +159,9 @@ export default function AdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: newAdminName.trim() || newAdminEmail.split("@")[0],
+          name: newAdminName.trim(),
           email: newAdminEmail.trim().toLowerCase(),
-          password: adminType === "CREDENTIALS" ? newAdminPassword : undefined,
-          isGoogleAccount: adminType === "GOOGLE",
+          password: newAdminPassword,
         }),
       });
 
@@ -204,9 +173,7 @@ export default function AdminPage() {
 
       success(
         "Admin Configured!",
-        adminType === "GOOGLE"
-          ? `Google account (${newAdminEmail.trim().toLowerCase()}) now has System Admin privileges.`
-          : `${data.user.name} has been provisioned as a System Admin.`
+        `${data.user.name} has been provisioned as a System Admin.`
       );
       setIsModalOpen(false);
       setNewAdminName("");
@@ -427,6 +394,66 @@ export default function AdminPage() {
       })
       .finally(() => setIsLoadingUserData(false));
   };
+
+  // Unauthorized Account Guard: Renders Access Denied matching requested design
+  if (userRole !== "ADMIN") {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-[#090D16] relative overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(239,68,68,0.12),rgba(255,255,255,0))]" />
+        <div className="w-full max-w-md bg-[#111827]/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl text-center space-y-5 relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto shadow-xl shadow-rose-500/10">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+              403 &bull; Unauthorized Account
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Access Denied
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
+              Only registered <strong className="text-purple-400">System Administrators</strong> can log into and access the Admin Platform Telemetry page.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-left space-y-2.5 text-xs">
+            <div className="flex items-center justify-between text-slate-400">
+              <span>Signed In As:</span>
+              <span className="font-mono text-white font-medium truncate max-w-[200px]">
+                {session?.user?.email || "Guest"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-slate-400">
+              <span>Account Role:</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                {userRole} (Personal Account)
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-slate-400 pt-2 border-t border-slate-800/80">
+              <span>Admin Status:</span>
+              <span className="text-rose-400 font-semibold">Not Authorized</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+            If you believe this is an error, please sign out and log in with your authorized admin account, or ask an existing System Admin to grant you admin privileges.
+          </p>
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition h-11 shadow-md shadow-indigo-600/30 active:scale-[0.99]"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Return to Login Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DashboardShell>
@@ -830,7 +857,7 @@ export default function AdminPage() {
                     <div>
                       <h3 className="text-base font-bold text-white">Add New System Admin</h3>
                       <p className="text-[11px] text-slate-400">
-                        Authorize a Google account or create standard credentials
+                        Create administrative email and password credentials
                       </p>
                     </div>
                   </div>
@@ -843,63 +870,25 @@ export default function AdminPage() {
                   </button>
                 </div>
 
-                {/* Account Type Selector (Google Account vs Credentials) */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900/90 rounded-xl border border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setAdminType("GOOGLE")}
-                    className={`flex items-center justify-center gap-2 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition ${adminType === "GOOGLE"
-                        ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                      }`}
-                  >
-                    <GoogleIcon />
-                    Google Account
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAdminType("CREDENTIALS")}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition ${adminType === "CREDENTIALS"
-                        ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                      }`}
-                  >
-                    <Lock className="w-3.5 h-3.5" />
-                    Email & Password
-                  </button>
-                </div>
-
                 {/* Form Section */}
                 <form onSubmit={handleCreateAdmin} className="space-y-3">
-                  {/* Google Account Info Tip */}
-                  {adminType === "GOOGLE" && (
-                    <div className="p-2.5 rounded-xl bg-purple-950/30 border border-purple-800/40 text-[11px] text-purple-200 flex items-start gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                      <span>
-                        Enter a Google account email. When this user logs in via <strong>Continue with Google</strong>, they will instantly have full System Admin access without needing a password.
-                      </span>
-                    </div>
-                  )}
-
                   {/* Full Name */}
                   <div>
                     <label
                       htmlFor="admin-name"
                       className="block text-[11px] font-medium text-slate-300 mb-1"
                     >
-                      Full Name {adminType === "GOOGLE" && "(Optional)"}
+                      Full Name
                     </label>
                     <div className="relative">
                       <User className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         id="admin-name"
                         type="text"
-                        required={adminType === "CREDENTIALS"}
+                        required
                         value={newAdminName}
                         onChange={(e) => setNewAdminName(e.target.value)}
-                        placeholder={
-                          adminType === "GOOGLE" ? "e.g. Admin Name (Optional)" : "Admin Full Name"
-                        }
+                        placeholder="Admin Full Name"
                         className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
                       />
                     </div>
@@ -911,7 +900,7 @@ export default function AdminPage() {
                       htmlFor="admin-email"
                       className="block text-[11px] font-medium text-slate-300 mb-1"
                     >
-                      {adminType === "GOOGLE" ? "Google Account Email" : "Email Address"}
+                      Admin Email Address
                     </label>
                     <div className="relative">
                       <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -921,37 +910,33 @@ export default function AdminPage() {
                         required
                         value={newAdminEmail}
                         onChange={(e) => setNewAdminEmail(e.target.value)}
-                        placeholder={
-                          adminType === "GOOGLE" ? "name@gmail.com" : "admin@example.com"
-                        }
+                        placeholder="admin@example.com"
                         className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
                       />
                     </div>
                   </div>
 
-                  {/* Password (Only for Standard Credentials) */}
-                  {adminType === "CREDENTIALS" && (
-                    <div>
-                      <label
-                        htmlFor="admin-password"
-                        className="block text-[11px] font-medium text-slate-300 mb-1"
-                      >
-                        Password (min 6 characters)
-                      </label>
-                      <div className="relative">
-                        <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          id="admin-password"
-                          type="password"
-                          required
-                          value={newAdminPassword}
-                          onChange={(e) => setNewAdminPassword(e.target.value)}
-                          placeholder="••••••••••••"
-                          className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
-                        />
-                      </div>
+                  {/* Password */}
+                  <div>
+                    <label
+                      htmlFor="admin-password"
+                      className="block text-[11px] font-medium text-slate-300 mb-1"
+                    >
+                      Password (min 6 characters)
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        id="admin-password"
+                        type="password"
+                        required
+                        value={newAdminPassword}
+                        onChange={(e) => setNewAdminPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
+                      />
                     </div>
-                  )}
+                  </div>
 
                   {/* Submit Button */}
                   <div className="pt-1">
@@ -965,11 +950,6 @@ export default function AdminPage() {
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           Configuring Admin...
                         </>
-                      ) : adminType === "GOOGLE" ? (
-                        <>
-                          <GoogleIcon />
-                          Authorize Google Account as Admin
-                        </>
                       ) : (
                         <>
                           <ShieldCheck className="w-4 h-4" />
@@ -979,27 +959,6 @@ export default function AdminPage() {
                     </button>
                   </div>
                 </form>
-
-                {/* Divider & Direct Google One-Click Auth */}
-                <div className="relative my-2">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-800" />
-                  </div>
-                  <div className="relative flex justify-center text-[10px] uppercase">
-                    <span className="bg-[#111827] px-2.5 text-slate-500 tracking-wider">
-                      Or sign in directly with Google
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => signIn("google", { callbackUrl: "/admin" })}
-                  className="w-full flex items-center justify-center gap-2.5 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 hover:border-slate-600 text-slate-200 text-xs sm:text-sm font-medium transition h-10 shadow-sm"
-                >
-                  <GoogleIcon />
-                  Sign In with Google as Admin
-                </button>
               </div>
             </div>
           )}

@@ -19,29 +19,29 @@ export async function POST(req: Request) {
       where: { email: cleanEmail },
     });
 
-    const defaultDevPassword = "adminPassword123";
-    const passwordHash = await bcrypt.hash(defaultDevPassword, 10);
+    // Enforce: Admin accounts cannot sign in via Google
+    if (user?.role === "ADMIN" || isAdmin) {
+      return NextResponse.json(
+        {
+          error: "AdminMustUsePassword",
+          message: "Admin accounts cannot use Google sign-in. Please log in at /admin/login.",
+        },
+        { status: 403 }
+      );
+    }
 
-    // If user does not exist:
+    const FALLBACK_AUTH_SECRET =
+      process.env.AUTH_SECRET ||
+      process.env.NEXTAUTH_SECRET ||
+      "pocketkhata-super-secret-jwt-token-key-2026-production-verified-32chars";
+
+    // If user does not exist, auto-create as student USER
     if (!user) {
-      if (!isSignup && !isAdmin) {
-        return NextResponse.json(
-          {
-            error: "UnauthorizedAccount",
-            message:
-              "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.",
-          },
-          { status: 404 }
-        );
-      }
-
-      // Create new user (from signup flow or recognized admin)
       user = await prisma.user.create({
         data: {
           name: cleanEmail.split("@")[0],
           email: cleanEmail,
-          passwordHash,
-          role: isAdmin ? "ADMIN" : "USER",
+          role: "USER",
           walletProfile: {
             create: {
               onlineBalance: 0,
@@ -51,24 +51,13 @@ export async function POST(req: Request) {
           },
         },
       });
-    } else {
-      // Ensure user has a valid password hash for credentials fallback
-      if (!user.passwordHash || (isAdmin && user.role !== "ADMIN")) {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            passwordHash: user.passwordHash || passwordHash,
-            role: isAdmin ? "ADMIN" : user.role,
-          },
-        });
-      }
     }
 
     return NextResponse.json({
       success: true,
       email: user.email,
-      role: user.role,
-      tempPassword: defaultDevPassword,
+      role: "USER",
+      devKey: FALLBACK_AUTH_SECRET,
     });
   } catch (error) {
     console.error("Dev Google signin error:", error);

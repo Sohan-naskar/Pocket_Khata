@@ -95,7 +95,7 @@ export function AppNavbar({
             <Link
               href={isOnAdmin ? "/admin" : "/wallet-settings"}
               className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-800 transition min-h-[44px]"
-              title={isOnAdmin ? "System Administrator" : "Wallet & Profile Settings"}
+              title={isOnAdmin ? (session?.user?.name || "Admin Portal") : "Wallet & Profile Settings"}
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -104,16 +104,16 @@ export function AppNavbar({
                     : "bg-slate-800 border border-slate-700 text-slate-300"
                 }`}
               >
-                {isOnAdmin ? (
-                  "S"
-                ) : session?.user?.name ? (
+                {session?.user?.name ? (
                   session.user.name.charAt(0).toUpperCase()
+                ) : isOnAdmin ? (
+                  "A"
                 ) : (
                   <User className="w-4 h-4" />
                 )}
               </div>
               <span className="hidden xl:inline text-xs font-medium text-slate-200 max-w-[140px] truncate">
-                {isOnAdmin ? "System Administrator" : session?.user?.name || "User"}
+                {isOnAdmin ? session?.user?.name || "Admin" : session?.user?.name || "User"}
               </span>
             </Link>
 

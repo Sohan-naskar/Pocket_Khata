@@ -24,7 +24,6 @@ if (!process.env.NEXTAUTH_SECRET) {
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  if (clean === "admin@pocketkhata.app") return true;
   if (clean === "sohannaskar2304@gmail.com") return true;
   if (process.env.ADMIN_INIT_EMAIL && process.env.ADMIN_INIT_EMAIL.toLowerCase().trim() === clean) return true;
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === clean) return true;
@@ -35,28 +34,30 @@ export function checkIsAdminEmail(email?: string | null): boolean {
   return false;
 }
 
+const isGoogleConfigured =
+  !!process.env.GOOGLE_CLIENT_ID &&
+  !!process.env.GOOGLE_CLIENT_SECRET &&
+  process.env.GOOGLE_CLIENT_ID.trim().length > 0 &&
+  process.env.GOOGLE_CLIENT_SECRET.trim().length > 0 &&
+  process.env.GOOGLE_CLIENT_ID !== "demo-google-client-id";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ...(isGoogleConfigured
       ? [
           Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             allowDangerousEmailAccountLinking: true,
           }),
         ]
-      : [
-          Google({
-            clientId: process.env.GOOGLE_CLIENT_ID || "demo-google-client-id",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "demo-google-client-secret",
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]),
+      : []),
     Credentials({
-      name: "Credentials",
+      id: "credentials",
+      name: "Admin Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Admin Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -66,20 +67,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email },
         });
 
-        // Do NOT allow auto-registration: return dedicated UnauthorizedAccount error
-        if (!user) {
-          throw new UnauthorizedAccountError();
+        // Strictly verify that the user exists and has a password
+        if (!user || !user.passwordHash) {
+          return null;
         }
-        if (!user.passwordHash) {
-          throw new UnauthorizedAccountError();
+
+        // Strictly enforce: ONLY users with role === 'ADMIN' can authenticate via Credentials
+        const isAdmin = user.role === "ADMIN" || checkIsAdminEmail(email);
+        if (!isAdmin) {
+          return null;
         }
 
         const isValid = await bcrypt.compare(String(credentials.password), user.passwordHash);
         if (!isValid) return null;
 
-        let role = user.role;
-        if (checkIsAdminEmail(email) && role !== "ADMIN") {
-          role = "ADMIN";
+        // Ensure database reflects ADMIN role
+        if (user.role !== "ADMIN") {
           await prisma.user
             .update({
               where: { id: user.id },
@@ -90,9 +93,57 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return {
           id: user.id,
-          name: user.name,
+          name: user.name || "System Admin",
           email: user.email,
-          role,
+          role: "ADMIN",
+          image: user.image,
+        };
+      },
+    }),
+    Credentials({
+      id: "student-dev-google",
+      name: "Simulated Google Sign-In",
+      credentials: {
+        email: { label: "Google Email", type: "email" },
+        devKey: { label: "Dev Key", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email) return null;
+        if (credentials.devKey !== FALLBACK_AUTH_SECRET) return null;
+
+        const email = String(credentials.email).toLowerCase().trim();
+        // Strictly block admins from using Google login
+        if (checkIsAdminEmail(email)) {
+          return null;
+        }
+
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (user?.role === "ADMIN") {
+          return null;
+        }
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: email.split("@")[0],
+              role: "USER",
+              walletProfile: {
+                create: {
+                  onlineBalance: 0,
+                  cashBalance: 0,
+                  currency: "INR",
+                },
+              },
+            },
+          });
+        }
+
+        return {
+          id: user.id,
+          name: user.name || email.split("@")[0],
+          email: user.email,
+          role: "USER",
           image: user.image,
         };
       },
@@ -108,62 +159,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user.email) return "/login?error=UnauthorizedAccount";
         try {
           const email = user.email.toLowerCase().trim();
-          let dbUser = await prisma.user.findUnique({
+          const dbUser = await prisma.user.findUnique({
             where: { email },
           });
 
-          // If user does not exist in the database, only allow auto-creation if this sign-in was initiated from the Signup page
-          if (!dbUser) {
-            let isSignupFlow = false;
-            try {
-              const { cookies } = await import("next/headers");
-              isSignupFlow = cookies().get("pk_signup_flow")?.value === "true";
-            } catch {
-              // Ignore if headers unavailable
-            }
+          // Strictly enforce: Admin accounts CANNOT authenticate via Google OAuth
+          if (dbUser?.role === "ADMIN" || checkIsAdminEmail(email)) {
+            return "/login?error=AdminMustUsePassword";
+          }
 
-            if (isSignupFlow) {
-              const isAdmin = checkIsAdminEmail(email);
-              dbUser = await prisma.user.create({
-                data: {
-                  email,
-                  name: user.name || email.split("@")[0],
-                  image: user.image || null,
-                  role: isAdmin ? "ADMIN" : "USER",
-                },
-              });
-
-              await prisma.walletProfile
-                .create({
-                  data: {
-                    userId: dbUser.id,
+          // Students/Normal Users: Automatically provision account & wallet on first Google sign-in
+          let targetUser = dbUser;
+          if (!targetUser) {
+            targetUser = await prisma.user.create({
+              data: {
+                email,
+                name: user.name || email.split("@")[0],
+                image: user.image || null,
+                role: "USER",
+                walletProfile: {
+                  create: {
                     onlineBalance: 0,
                     cashBalance: 0,
                     currency: "INR",
                   },
-                })
-                .catch(() => {});
-            } else {
-              return "/login?error=UnauthorizedAccount";
-            }
-          }
-
-          const isAdmin = checkIsAdminEmail(email);
-          if (isAdmin && dbUser.role !== "ADMIN") {
-            await prisma.user.update({
-              where: { id: dbUser.id },
-              data: { role: "ADMIN" },
+                },
+              },
             });
-            dbUser.role = "ADMIN";
           }
 
-          user.id = dbUser.id;
+          user.id = targetUser.id;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (user as any).role = dbUser.role;
+          (user as any).role = "USER";
           return true;
         } catch (err) {
           console.error("Warning during Google signIn callback:", err);
-          return "/login?error=UnauthorizedAccount";
+          return "/login?error=GoogleAuthFailed";
         }
       }
       return true;
@@ -176,9 +207,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       const email = (token.email || user?.email)?.toLowerCase().trim();
-      if (checkIsAdminEmail(email)) {
-        token.role = "ADMIN";
-      } else if (account?.provider === "google" && email) {
+      if (email && !token.role) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email },

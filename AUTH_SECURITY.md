@@ -1,23 +1,25 @@
 # PocketKhata — Authentication & Authorization Security Specification (AUTH_SECURITY.md)
 
 > **Document Status**: Production Verified  
-> **Version**: 2.0.0  
-> **Standard**: NextAuth.js v5 / Auth.js (Edge-Safe Middleware + RBAC + Anti-Auto-Registration Guard)  
+> **Version**: 3.0.0  
+> **Standard**: NextAuth.js v5 / Auth.js (Strict Split Authentication: Student Google OAuth vs Admin Password Portal)  
 
 ---
 
 ## 1. Authentication Architecture Overview
 
-PocketKhata implements a zero-trust authentication boundary designed to prevent unauthorized access, enforce strict role-based routing, and safeguard personal financial records.
+PocketKhata implements a strict architectural split between normal student users and platform administrators:
+
+1. **Normal Users / Students**: Authenticate **ONLY** via Google OAuth on `/login`. No manual password accounts exist for students.
+2. **Platform Administrators**: Authenticate **ONLY** via Manual Email + bcrypt password on the dedicated `/admin/login` page. Google OAuth is strictly prohibited from authenticating Admin accounts.
 
 ```
 +-----------------------------------------------------------------------------------+
 |                                 CLIENT VIEWPORT                                   |
-|   - /login (Unified Credentials + Google OAuth Sign-In)                           |
-|   - /signup (Strictly creates Personal USER accounts)                            |
-|   - /unauthorized (Custom Neo-Fintech 403 Forbidden page)                        |
-|   - /admin (Open Direct-Access Platform Telemetry Portal - No Auth Required)      |
-|   - /dashboard (Personal Finance Dashboard partitioned by userId - Auth Required)  |
+|   - /login (Student Login: One-Click Google OAuth ONLY)                          |
+|   - /admin/login (Dedicated Administrator Portal Login: Email + Password ONLY)   |
+|   - /admin (Protected Admin Telemetry & User Registry - Requires ADMIN Role)     |
+|   - /dashboard (Personal Finance Dashboard - Requires USER Role)                 |
 +-----------------------------------------------------------------------------------+
                                        |
                                HTTP / NextRequest
@@ -25,64 +27,65 @@ PocketKhata implements a zero-trust authentication boundary designed to prevent 
 +-----------------------------------------------------------------------------------+
 |                           EDGE ROUTE MIDDLEWARE (middleware.ts)                   |
 |   - Inspects JWT session token & decoded role                                     |
-|   - /admin/:path* & /api/admin/* -> Public direct access (bypasses auth checks)   |
-|   - Unauthenticated on protected student routes -> Redirect to /login             |
-|   - Public routes allowed: /admin, /api/admin/*, /login, /signup, /unauthorized   |
+|   - /admin/login -> Public (Redirects to /admin if already logged in as ADMIN)    |
+|   - /admin/:path* -> Protected: Redirects to /admin/login if not ADMIN            |
+|   - /api/admin/* -> Protected: Returns 403 Forbidden if not ADMIN                |
+|   - Student routes (/dashboard, /transactions, etc.) -> Redirects to /login        |
 +-----------------------------------------------------------------------------------+
                                        |
                                        v
 +-----------------------------------------------------------------------------------+
 |                              AUTH.JS CORE (auth.ts)                               |
-|   - Credentials Provider: Email + Password validated with bcryptjs                |
-|     * Unregistered email -> Returns/Throws UnauthorizedAccount error              |
-|   - Google OAuth Provider: In signIn callback:                                    |
-|     * If user.email not in DB -> Returns /login?error=UnauthorizedAccount         |
-|     * Auto-registration is strictly BLOCKED during login                          |
+|   - Credentials Provider: EXCLUSIVELY for ADMIN accounts                          |
+|     * Verifies email + bcrypt password; strictly checks user.role === 'ADMIN'     |
+|     * Any non-admin account is rejected from credentials authorization            |
+|   - Google OAuth Provider: EXCLUSIVELY for USER (Student) accounts                |
+|     * If user.email is registered as ADMIN, rejects with:                        |
+|       /login?error=AdminMustUsePassword                                           |
+|     * If user does not exist in DB, automatically creates USER account + wallet   |
+|     * Enforces user.role = 'USER' for all Google sign-ins                         |
 +-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Authentication Restriction & "Unauthorized Account" Error
+## 2. Authentication Restriction & Guard Policies
 
-### 2.1 Credentials Sign-In Policy
-- When a user inputs an email and password on `/login`:
-  1. The server checks `prisma.user.findUnique({ where: { email } })`.
-  2. If no record is found, the system **strictly prohibits auto-creating an account**.
-  3. NextAuth returns a dedicated `UnauthorizedAccount` error.
-  4. On the `/login` screen, an explicit red alert banner is displayed:
-     > **Unauthorized Account**: This email is not registered. Please create an account or contact the administrator.
+### 2.1 Student Google OAuth Policy (`/login`)
+- Students sign in using the **"Continue with Google"** button on `/login`.
+- If the user account does not yet exist, it is automatically provisioned as `role: "USER"` with an initialized wallet profile (`onlineBalance: 0, cashBalance: 0`).
+- If an email registered as an `ADMIN` attempts to log in via Google, the sign-in callback rejects the request and redirects to:
+  `"/login?error=AdminMustUsePassword"`
+- On `/login`, an alert banner is displayed:
+  > **Admin Notice**: Admin accounts cannot use Google sign-in. Please log in at `/admin/login`.
 
-### 2.2 Google OAuth Policy
-- In the `signIn({ user, account })` callback:
-  1. For `account.provider === "google"`, the callback checks `prisma.user.findUnique({ where: { email } })`.
-  2. If the Google account's email does not exist in the database, the callback rejects authentication and returns:
-     `"/login?error=UnauthorizedAccount"`
-  3. No user record, wallet profile, or token is created for unknown Google emails during login.
-  4. The user is redirected to `/login?error=UnauthorizedAccount`, where the red alert banner is displayed.
-  5. New users must register explicitly through `/signup`.
+### 2.2 Administrator Credentials Policy (`/admin/login`)
+- Dedicated administration login at `/admin/login`.
+- Fields: Admin Email and Password.
+- `CredentialsProvider.authorize` validates password via `bcrypt.compare` and strictly checks:
+  `user.role === 'ADMIN'`.
+- If the account role is not `ADMIN`, authorization is rejected.
 
 ---
 
 ## 3. Role-Based Access Control (RBAC) & Route Protection
 
-PocketKhata defines two system roles:
-1. `USER` (Default): Access to personal financial features (`/dashboard`, `/transactions`, `/udhaar`, `/analytics`, `/wallet-settings`). User cannot access `/admin`.
-2. `ADMIN`: Elevated role granting access to `/admin` for platform telemetry and user registry management. Financial data of other users is strictly hidden from admins.
-
-### 3.1 Middleware Guard Invariants (`src/auth.config.ts`)
-
 | Requested Path | Authentication State | User Role | Resulting Action |
 | :--- | :--- | :--- | :--- |
-| `/admin/*` | Unauthenticated / Authenticated | Any | **Allowed** (Open direct-access telemetry portal for local administration; NO authentication required) |
-| `/api/admin/*` | Unauthenticated / Authenticated | Any | **Allowed** (Open direct telemetry data APIs; Strict Financial Privacy enforced) |
+| `/admin/login` | Unauthenticated | N/A | **Allowed** (Admin sign-in form) |
+| `/admin/login` | Authenticated | `ADMIN` | Redirect to `/admin` |
+| `/admin/*` | Unauthenticated | N/A | Redirect to `/admin/login?callbackUrl=/admin` |
+| `/admin/*` | Authenticated | `USER` | Redirect to `/admin/login?error=AdminUnauthorized` |
+| `/admin/*` | Authenticated | `ADMIN` | **Allowed** (Admin Platform Telemetry) |
+| `/api/admin/*` | Unauthenticated | N/A | Return 403 Forbidden |
+| `/api/admin/*` | Authenticated | `USER` | Return 403 Forbidden |
+| `/api/admin/*` | Authenticated | `ADMIN` | **Allowed** (Strict Financial Privacy Enforced) |
 | `/dashboard/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/dashboard` |
-| `/dashboard/*` | Authenticated | `USER` / `ADMIN` | **Allowed** (Personal finance partition) |
-| `/transactions/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/transactions` |
-| `/udhaar/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/udhaar` |
-| `/analytics/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/analytics` |
-| `/wallet-settings` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/wallet-settings` |
-| `/unauthorized` | Any | Any | **Allowed** (Displays Neo-Fintech 403 page) |
+| `/dashboard/*` | Authenticated | `USER` | **Allowed** (Personal Finance Workspace) |
+| `/dashboard/*` | Authenticated | `ADMIN` | Redirect to `/admin` |
+| `/login` | Unauthenticated | N/A | **Allowed** (Student Google OAuth) |
+| `/login` | Authenticated | `USER` | Redirect to `/dashboard` |
+| `/login` | Authenticated | `ADMIN` | Redirect to `/admin` |
 
 ### 3.2 Custom 403 / Unauthorized Page (`src/app/unauthorized/page.tsx`)
 - Displayed when an authenticated non-admin user navigates to `/admin`.
@@ -105,8 +108,8 @@ PocketKhata defines two system roles:
      `await prisma.user.findFirst({ where: { role: "ADMIN" } })`
   2. If no admin exists:
      - Creates the Super Admin:
-       - Name: `"System Administrator"`
-       - Email: Configured via `ADMIN_INIT_EMAIL` in `.env` (defaults to `"admin@pocketkhata.app"`)
+       - Name: `"Sohan Naskar"`
+       - Email: Configured via `ADMIN_INIT_EMAIL` in `.env` (defaults to `"sohannaskar2304@gmail.com"`)
        - Password: Hashed via `bcryptjs` from `ADMIN_INIT_PASSWORD` in `.env` (defaults to `"adminPassword123"`)
        - Role: `"ADMIN"`
        - Creates an initial empty wallet profile (`onlineBalance: 0, cashBalance: 0`)
