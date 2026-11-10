@@ -24,6 +24,12 @@ import {
   ShieldCheck,
   LockKeyhole,
   LogOut,
+  Trash2,
+  AlertTriangle,
+  FileText,
+  HandCoins,
+  FolderEdit,
+  ReceiptText,
 } from "lucide-react";
 
 interface AdminMetrics {
@@ -41,6 +47,30 @@ interface AdminUserRow {
   createdAt: string;
   transactionsCount: number;
   loansCount: number;
+}
+
+interface UserDetailedTransaction {
+  id: string;
+  type: string;
+  wallet: string;
+  category: string;
+  description: string | null;
+  date: string;
+  createdAt: string;
+}
+
+interface UserDetailedLoan {
+  id: string;
+  borrowerName: string;
+  borrowerPhone: string;
+  borrowerEmail: string | null;
+  wallet: string;
+  lentDate: string;
+  dueDate: string;
+  status: string;
+  notes: string | null;
+  collectedAt: string | null;
+  createdAt: string;
 }
 
 function GoogleIcon() {
@@ -90,6 +120,28 @@ export default function AdminPage() {
 
   // Role action loader tracking
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+
+  // User removal modal state
+  const [deleteUserModalTarget, setDeleteUserModalTarget] = useState<AdminUserRow | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+
+  // Clear transactions modal state
+  const [clearTransactionsModalTarget, setClearTransactionsModalTarget] = useState<AdminUserRow | null>(null);
+  const [isClearingTransactions, setIsClearingTransactions] = useState(false);
+
+  // Clear loans modal state
+  const [clearLoansModalTarget, setClearLoansModalTarget] = useState<AdminUserRow | null>(null);
+  const [isClearingLoans, setIsClearingLoans] = useState(false);
+
+  // Detailed User Data Inspector Modal state
+  const [userDataModalTarget, setUserDataModalTarget] = useState<AdminUserRow | null>(null);
+  const [userDetailedData, setUserDetailedData] = useState<{
+    transactions: UserDetailedTransaction[];
+    loans: UserDetailedLoan[];
+  } | null>(null);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
+  const [userDataActiveTab, setUserDataActiveTab] = useState<"TRANSACTIONS" | "LOANS">("TRANSACTIONS");
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   const fetchAdminData = () => {
     setIsLoading(true);
@@ -213,6 +265,167 @@ export default function AdminPage() {
     } finally {
       setUpdatingUserId(null);
     }
+  };
+
+  // Delete Entire User Account Handler
+  const handleDeleteUser = async () => {
+    if (!deleteUserModalTarget) return;
+    setIsDeletingUser(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: deleteUserModalTarget.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toastError("Delete Failed", data.error || "Unable to remove user account.");
+        return;
+      }
+      success(
+        "Account Removed",
+        `${deleteUserModalTarget.name || deleteUserModalTarget.email} was permanently deleted.`
+      );
+      setDeleteUserModalTarget(null);
+      if (userDataModalTarget?.id === deleteUserModalTarget.id) {
+        setUserDataModalTarget(null);
+      }
+      fetchAdminData();
+    } catch {
+      toastError("Network Error", "Failed to connect to the server.");
+    } finally {
+      setIsDeletingUser(false);
+    }
+  };
+
+  // Clear All Transactions for a User
+  const handleClearTransactions = async (targetUser: AdminUserRow) => {
+    setIsClearingTransactions(true);
+    try {
+      const res = await fetch("/api/admin/user-data", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: targetUser.id, action: "CLEAR_TRANSACTIONS" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toastError("Clear Failed", data.error || "Unable to clear transactions.");
+        return;
+      }
+      success("Transactions Cleared", data.message || "All transactions removed.");
+      setClearTransactionsModalTarget(null);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === targetUser.id ? { ...u, transactionsCount: 0 } : u))
+      );
+      if (userDataModalTarget?.id === targetUser.id) {
+        setUserDetailedData((prev) => (prev ? { ...prev, transactions: [] } : null));
+      }
+      fetchAdminData();
+    } catch {
+      toastError("Network Error", "Failed to clear transactions.");
+    } finally {
+      setIsClearingTransactions(false);
+    }
+  };
+
+  // Clear All Loans for a User
+  const handleClearLoans = async (targetUser: AdminUserRow) => {
+    setIsClearingLoans(true);
+    try {
+      const res = await fetch("/api/admin/user-data", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: targetUser.id, action: "CLEAR_LOANS" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toastError("Clear Failed", data.error || "Unable to clear loans.");
+        return;
+      }
+      success("Loans Cleared", data.message || "All peer loans removed.");
+      setClearLoansModalTarget(null);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === targetUser.id ? { ...u, loansCount: 0 } : u))
+      );
+      if (userDataModalTarget?.id === targetUser.id) {
+        setUserDetailedData((prev) => (prev ? { ...prev, loans: [] } : null));
+      }
+      fetchAdminData();
+    } catch {
+      toastError("Network Error", "Failed to clear loans.");
+    } finally {
+      setIsClearingLoans(false);
+    }
+  };
+
+  // Delete Individual Transaction or Loan
+  const handleDeleteSingleItem = async (
+    userId: string,
+    action: "DELETE_TRANSACTION" | "DELETE_LOAN",
+    itemId: string
+  ) => {
+    setDeletingItemId(itemId);
+    try {
+      const res = await fetch("/api/admin/user-data", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, action, itemId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toastError("Delete Failed", data.error || "Unable to remove item.");
+        return;
+      }
+      success(
+        "Removed",
+        action === "DELETE_TRANSACTION" ? "Transaction deleted." : "Peer loan deleted."
+      );
+      if (action === "DELETE_TRANSACTION") {
+        setUserDetailedData((prev) =>
+          prev ? { ...prev, transactions: prev.transactions.filter((t) => t.id !== itemId) } : null
+        );
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId ? { ...u, transactionsCount: Math.max(0, u.transactionsCount - 1) } : u
+          )
+        );
+      } else {
+        setUserDetailedData((prev) =>
+          prev ? { ...prev, loans: prev.loans.filter((l) => l.id !== itemId) } : null
+        );
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId ? { ...u, loansCount: Math.max(0, u.loansCount - 1) } : u
+          )
+        );
+      }
+      fetchAdminData();
+    } catch {
+      toastError("Network Error", "Failed to delete item.");
+    } finally {
+      setDeletingItemId(null);
+    }
+  };
+
+  // Open User Data Inspector Modal
+  const handleOpenUserDataModal = (targetUser: AdminUserRow) => {
+    setUserDataModalTarget(targetUser);
+    setIsLoadingUserData(true);
+    fetch(`/api/admin/user-data?userId=${targetUser.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load user data");
+        return res.json();
+      })
+      .then((data) => {
+        setUserDetailedData({
+          transactions: data.transactions || [],
+          loans: data.loans || [],
+        });
+      })
+      .catch((err) => {
+        toastError("Error", err.message);
+      })
+      .finally(() => setIsLoadingUserData(false));
   };
 
   return (
@@ -350,12 +563,12 @@ export default function AdminPage() {
                         <th className="py-3 px-4">Registered Date (DD-MM-YYYY)</th>
                         <th className="py-3 px-4 text-center">Transactions</th>
                         <th className="py-3 px-4 text-center">Loans</th>
-                        <th className="py-3 px-4 text-right">Role Management</th>
+                        <th className="py-3 px-4 text-right">Actions & Management</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/80 text-sm">
                       {users.map((u) => {
-                        const isSelf = u.id === currentUserId;
+                        const isSelf = !!currentUserId && u.id === currentUserId;
                         const isUpdating = updatingUserId === u.id;
 
                         return (
@@ -373,10 +586,11 @@ export default function AdminPage() {
                             </td>
                             <td className="py-3.5 px-4">
                               <span
-                                className={`px-2 py-0.5 rounded text-xs font-bold ${u.role === "ADMIN"
+                                className={`px-2 py-0.5 rounded text-xs font-bold ${
+                                  u.role === "ADMIN"
                                     ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                                     : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                                  }`}
+                                }`}
                               >
                                 {u.role}
                               </span>
@@ -385,38 +599,96 @@ export default function AdminPage() {
                               {formatDateDDMMYYYY(u.createdAt)}
                             </td>
                             <td className="py-3.5 px-4 text-center font-mono text-xs">
-                              {u.transactionsCount}
+                              <div className="flex items-center justify-center gap-1.5">
+                                <span className="font-semibold text-white">
+                                  {u.transactionsCount}
+                                </span>
+                                {u.transactionsCount > 0 && !isSelf && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setClearTransactionsModalTarget(u)}
+                                    className="p-1 rounded hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition"
+                                    title={`Clear ${u.transactionsCount} transactions for ${u.name || u.email}`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3.5 px-4 text-center font-mono text-xs">
-                              {u.loansCount}
+                              <div className="flex items-center justify-center gap-1.5">
+                                <span className="font-semibold text-white">
+                                  {u.loansCount}
+                                </span>
+                                {u.loansCount > 0 && !isSelf && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setClearLoansModalTarget(u)}
+                                    className="p-1 rounded hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 transition"
+                                    title={`Clear ${u.loansCount} loans for ${u.name || u.email}`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3.5 px-4 text-right">
-                              {isSelf ? (
-                                <span className="text-xs text-slate-500 italic">Current Session</span>
-                              ) : isUpdating ? (
-                                <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  Updating...
-                                </span>
-                              ) : u.role === "USER" ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleRole(u, "ADMIN")}
-                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-600/15 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition active:scale-[0.98]"
-                                >
-                                  <Shield className="w-3.5 h-3.5 text-purple-400" />
-                                  Promote to Admin
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleRole(u, "USER")}
-                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700/80 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 hover:bg-rose-500/10 transition active:scale-[0.98]"
-                                >
-                                  <UserMinus className="w-3.5 h-3.5" />
-                                  Demote to User
-                                </button>
-                              )}
+                              <div className="flex items-center justify-end gap-1.5">
+                                {isSelf ? (
+                                  <span className="text-xs text-slate-500 italic">Current Session</span>
+                                ) : isUpdating ? (
+                                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    Updating...
+                                  </span>
+                                ) : (
+                                  <>
+                                    {/* Role Toggle Button */}
+                                    {u.role === "USER" ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleRole(u, "ADMIN")}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-600/15 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition active:scale-[0.98]"
+                                        title="Promote to System Admin"
+                                      >
+                                        <Shield className="w-3.5 h-3.5 text-purple-400" />
+                                        <span>Promote to Admin</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleRole(u, "USER")}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700/80 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 hover:bg-rose-500/10 transition active:scale-[0.98]"
+                                        title="Demote to Standard User"
+                                      >
+                                        <UserMinus className="w-3.5 h-3.5" />
+                                        <span>Demote to User</span>
+                                      </button>
+                                    )}
+
+                                    {/* Manage Data Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenUserDataModal(u)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 transition active:scale-[0.98]"
+                                      title="Inspect & Remove Transactions or Loans"
+                                    >
+                                      <FolderEdit className="w-3.5 h-3.5 text-indigo-400" />
+                                      <span>Manage Data</span>
+                                    </button>
+
+                                    {/* Remove Account Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setDeleteUserModalTarget(u)}
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition active:scale-[0.98]"
+                                      title={`Permanently delete account for ${u.name || u.email}`}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -428,7 +700,7 @@ export default function AdminPage() {
                 {/* Mobile View */}
                 <div className="md:hidden divide-y divide-slate-800 p-2">
                   {users.map((u) => {
-                    const isSelf = u.id === currentUserId;
+                    const isSelf = !!currentUserId && u.id === currentUserId;
                     const isUpdating = updatingUserId === u.id;
 
                     return (
@@ -443,10 +715,11 @@ export default function AdminPage() {
                             )}
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.role === "ADMIN"
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              u.role === "ADMIN"
                                 ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                                 : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                              }`}
+                            }`}
                           >
                             {u.role}
                           </span>
@@ -454,13 +727,39 @@ export default function AdminPage() {
                         <p className="text-xs text-slate-400 font-mono truncate">{u.email}</p>
                         <div className="flex justify-between items-center text-xs text-slate-400 font-mono">
                           <span>Joined: {formatDateDDMMYYYY(u.createdAt)}</span>
-                          <span>
-                            {u.transactionsCount} txs &bull; {u.loansCount} loans
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center gap-1">
+                              {u.transactionsCount} txs
+                              {u.transactionsCount > 0 && !isSelf && (
+                                <button
+                                  type="button"
+                                  onClick={() => setClearTransactionsModalTarget(u)}
+                                  className="text-rose-400 hover:text-rose-300 p-0.5"
+                                  title="Clear transactions"
+                                >
+                                  <Trash2 className="w-3 h-3 inline" />
+                                </button>
+                              )}
+                            </span>
+                            <span>&bull;</span>
+                            <span className="flex items-center gap-1">
+                              {u.loansCount} loans
+                              {u.loansCount > 0 && !isSelf && (
+                                <button
+                                  type="button"
+                                  onClick={() => setClearLoansModalTarget(u)}
+                                  className="text-amber-400 hover:text-amber-300 p-0.5"
+                                  title="Clear loans"
+                                >
+                                  <Trash2 className="w-3 h-3 inline" />
+                                </button>
+                              )}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Action on Mobile */}
-                        <div className="pt-1 flex justify-end">
+                        <div className="pt-1 flex flex-wrap items-center justify-end gap-1.5">
                           {isSelf ? (
                             <span className="text-[11px] text-slate-500 italic">Current Session</span>
                           ) : isUpdating ? (
@@ -468,24 +767,46 @@ export default function AdminPage() {
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               Updating...
                             </span>
-                          ) : u.role === "USER" ? (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleRole(u, "ADMIN")}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600/15 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition"
-                            >
-                              <Shield className="w-3.5 h-3.5 text-purple-400" />
-                              Promote to Admin
-                            </button>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleRole(u, "USER")}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700/80 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 transition"
-                            >
-                              <UserMinus className="w-3.5 h-3.5" />
-                              Demote to User
-                            </button>
+                            <>
+                              {u.role === "USER" ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleRole(u, "ADMIN")}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-600/15 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition"
+                                >
+                                  <Shield className="w-3.5 h-3.5 text-purple-400" />
+                                  <span>Promote</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleRole(u, "USER")}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700/80 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 transition"
+                                >
+                                  <UserMinus className="w-3.5 h-3.5" />
+                                  <span>Demote</span>
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => handleOpenUserDataModal(u)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700/80 transition"
+                              >
+                                <FolderEdit className="w-3.5 h-3.5 text-indigo-400" />
+                                <span>Manage</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setDeleteUserModalTarget(u)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Remove</span>
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -679,6 +1000,519 @@ export default function AdminPage() {
                   <GoogleIcon />
                   Sign In with Google as Admin
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* 1. Remove User Account Confirmation Modal */}
+          {deleteUserModalTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="w-full max-w-md bg-[#111827] border border-rose-900/60 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                      <Trash2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Permanently Remove Account</h3>
+                      <p className="text-[11px] text-slate-400">Irreversible account & data deletion</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteUserModalTarget(null)}
+                    disabled={isDeletingUser}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>User / Account:</span>
+                    <span className="font-semibold text-white">
+                      {deleteUserModalTarget.name || "Nameless User"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Email Address:</span>
+                    <span className="font-mono text-slate-200 truncate max-w-[200px]">
+                      {deleteUserModalTarget.email}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Account Role:</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300">
+                      {deleteUserModalTarget.role}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 pt-1.5 border-t border-slate-800/80">
+                    <span>Associated Data:</span>
+                    <span className="text-rose-400 font-semibold">
+                      {deleteUserModalTarget.transactionsCount} transactions &bull;{" "}
+                      {deleteUserModalTarget.loansCount} loans
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-900/40 text-xs text-rose-300 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <span>
+                    Warning: This action will permanently wipe this user account, their wallet profile,
+                    and all associated transactions and loans from PocketKhata. This cannot be undone.
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteUserModalTarget(null)}
+                    disabled={isDeletingUser}
+                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteUser}
+                    disabled={isDeletingUser}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-60 text-xs font-semibold text-white shadow-md shadow-rose-600/30 transition active:scale-[0.99]"
+                  >
+                    {isDeletingUser ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Deleting Account...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Confirm Delete Account
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Clear All Transactions Confirmation Modal */}
+          {clearTransactionsModalTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="w-full max-w-md bg-[#111827] border border-rose-900/60 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                      <ReceiptText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Remove All Transactions</h3>
+                      <p className="text-[11px] text-slate-400">Clear transaction history for user</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClearTransactionsModalTarget(null)}
+                    disabled={isClearingTransactions}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Target User:</span>
+                    <span className="font-semibold text-white">
+                      {clearTransactionsModalTarget.name || clearTransactionsModalTarget.email}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Email:</span>
+                    <span className="font-mono text-slate-200 truncate max-w-[200px]">
+                      {clearTransactionsModalTarget.email}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 pt-1.5 border-t border-slate-800/80">
+                    <span>Transactions to Remove:</span>
+                    <span className="text-rose-400 font-bold">
+                      {clearTransactionsModalTarget.transactionsCount} record(s)
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300">
+                  Are you sure you want to delete all transaction records for this account? Their day-to-day
+                  ledger history will be reset to zero.
+                </p>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setClearTransactionsModalTarget(null)}
+                    disabled={isClearingTransactions}
+                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleClearTransactions(clearTransactionsModalTarget)}
+                    disabled={isClearingTransactions}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-60 text-xs font-semibold text-white shadow-md shadow-rose-600/30 transition active:scale-[0.99]"
+                  >
+                    {isClearingTransactions ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Clearing Transactions...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Confirm Remove Transactions
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. Clear All Loans Confirmation Modal */}
+          {clearLoansModalTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="w-full max-w-md bg-[#111827] border border-amber-900/60 rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                      <HandCoins className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Remove All Peer Loans</h3>
+                      <p className="text-[11px] text-slate-400">Clear Udhaar lending records for user</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClearLoansModalTarget(null)}
+                    disabled={isClearingLoans}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Target User:</span>
+                    <span className="font-semibold text-white">
+                      {clearLoansModalTarget.name || clearLoansModalTarget.email}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Email:</span>
+                    <span className="font-mono text-slate-200 truncate max-w-[200px]">
+                      {clearLoansModalTarget.email}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 pt-1.5 border-t border-slate-800/80">
+                    <span>Loans to Remove:</span>
+                    <span className="text-amber-400 font-bold">
+                      {clearLoansModalTarget.loansCount} peer loan(s)
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300">
+                  Are you sure you want to delete all Udhaar loans for this account? All active and collected
+                  loan records will be removed.
+                </p>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setClearLoansModalTarget(null)}
+                    disabled={isClearingLoans}
+                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleClearLoans(clearLoansModalTarget)}
+                    disabled={isClearingLoans}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-60 text-xs font-semibold text-white shadow-md shadow-amber-600/30 transition active:scale-[0.99]"
+                  >
+                    {isClearingLoans ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Clearing Loans...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Confirm Remove Loans
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4. Detailed User Data Inspector & Removal Modal */}
+          {userDataModalTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+              <div className="w-full max-w-2xl bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl p-4 sm:p-6 space-y-4 my-8 relative">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                      <FolderEdit className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">
+                        User Data Inspector & Management
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        {userDataModalTarget.name || "User"} &bull; {userDataModalTarget.email}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserDataModalTarget(null);
+                      setUserDetailedData(null);
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Privacy Guarantee Note */}
+                <div className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
+                  <LockKeyhole className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>
+                    <strong className="text-slate-200">Financial Privacy Enforced:</strong> Money totals,
+                    wallet balances, and transaction amounts are excluded from inspection.
+                  </span>
+                </div>
+
+                {/* Tab Navigation */}
+                <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setUserDataActiveTab("TRANSACTIONS")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                      userDataActiveTab === "TRANSACTIONS"
+                        ? "bg-indigo-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    <ReceiptText className="w-3.5 h-3.5" />
+                    <span>Transactions</span>
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-black/40">
+                      {userDetailedData?.transactions.length ?? userDataModalTarget.transactionsCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setUserDataActiveTab("LOANS")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                      userDataActiveTab === "LOANS"
+                        ? "bg-indigo-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    <HandCoins className="w-3.5 h-3.5" />
+                    <span>Peer Loans</span>
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-black/40">
+                      {userDetailedData?.loans.length ?? userDataModalTarget.loansCount}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                {isLoadingUserData ? (
+                  <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                    <span className="text-xs">Loading user records...</span>
+                  </div>
+                ) : userDataActiveTab === "TRANSACTIONS" ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-300">
+                        Recorded Ledger Transactions (
+                        {userDetailedData?.transactions.length || 0})
+                      </span>
+                      {userDetailedData && userDetailedData.transactions.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setClearTransactionsModalTarget(userDataModalTarget)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Clear All ({userDetailedData.transactions.length})</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {!userDetailedData?.transactions || userDetailedData.transactions.length === 0 ? (
+                      <div className="p-8 text-center rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
+                        No transactions found for this user account.
+                      </div>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto divide-y divide-slate-800 rounded-xl bg-slate-900/70 border border-slate-800 text-xs">
+                        {userDetailedData.transactions.map((t) => (
+                          <div key={t.id} className="p-3 flex items-center justify-between gap-3">
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                    t.type === "EXPENSE"
+                                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                  }`}
+                                >
+                                  {t.type}
+                                </span>
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+                                  {t.wallet}
+                                </span>
+                                <span className="font-semibold text-white truncate">
+                                  {t.category}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                                <span>{formatDateDDMMYYYY(t.date)}</span>
+                                {t.description && <span>&bull; {t.description}</span>}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteSingleItem(
+                                  userDataModalTarget.id,
+                                  "DELETE_TRANSACTION",
+                                  t.id
+                                )
+                              }
+                              disabled={deletingItemId === t.id}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 transition shrink-0"
+                              title="Delete this transaction"
+                            >
+                              {deletingItemId === t.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-300">
+                        Peer Loans Recorded ({userDetailedData?.loans.length || 0})
+                      </span>
+                      {userDetailedData && userDetailedData.loans.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setClearLoansModalTarget(userDataModalTarget)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Clear All ({userDetailedData.loans.length})</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {!userDetailedData?.loans || userDetailedData.loans.length === 0 ? (
+                      <div className="p-8 text-center rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
+                        No peer loans found for this user account.
+                      </div>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto divide-y divide-slate-800 rounded-xl bg-slate-900/70 border border-slate-800 text-xs">
+                        {userDetailedData.loans.map((l) => (
+                          <div key={l.id} className="p-3 flex items-center justify-between gap-3">
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                    l.status === "COLLECTED"
+                                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                      : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                  }`}
+                                >
+                                  {l.status}
+                                </span>
+                                <span className="font-semibold text-white truncate">
+                                  {l.borrowerName}
+                                </span>
+                                <span className="text-[11px] text-slate-400 font-mono">
+                                  ({l.borrowerPhone})
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                                <span>Lent: {formatDateDDMMYYYY(l.lentDate)}</span>
+                                <span>&bull; Due: {formatDateDDMMYYYY(l.dueDate)}</span>
+                                {l.notes && <span>&bull; {l.notes}</span>}
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteSingleItem(userDataModalTarget.id, "DELETE_LOAN", l.id)
+                              }
+                              disabled={deletingItemId === l.id}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 transition shrink-0"
+                              title="Delete this peer loan"
+                            >
+                              {deletingItemId === l.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Bottom Actions */}
+                <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteUserModalTarget(userDataModalTarget);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete User Account</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserDataModalTarget(null);
+                      setUserDetailedData(null);
+                    }}
+                    className="px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 transition"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           )}

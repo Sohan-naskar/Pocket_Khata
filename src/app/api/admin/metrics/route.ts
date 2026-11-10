@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 // GET: Direct access open telemetry metrics for local administration (No Auth required)
 // STRICT FINANCIAL PRIVACY ENFORCED: Personal monetary data, wallet balances, and amounts are completely excluded.
 export async function GET() {
