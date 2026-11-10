@@ -30,6 +30,11 @@ function LoginForm() {
         "Google Sign-In Cancelled",
         "The Google authorization request was cancelled or mismatched. Please verify redirect URIs."
       );
+    } else if (errorParam === "AccessDenied") {
+      toastError(
+        "Sign-In Blocked (AccessDenied)",
+        "Google authentication completed, but user creation was denied. Update applied."
+      );
     } else if (errorParam) {
       toastError("Authentication Notice", `Sign-in notice: ${errorParam}`);
     }

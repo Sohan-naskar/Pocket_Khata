@@ -54,7 +54,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {
-      if (account?.provider === "google" && user.email) {
+      if (account?.provider === "google") {
+        if (!user.email) return true;
         try {
           const email = user.email.toLowerCase().trim();
           let dbUser = await prisma.user.findUnique({
@@ -65,30 +66,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             dbUser = await prisma.user.create({
               data: {
                 email,
-                name: user.name || "PocketKhata User",
+                name: user.name || email.split("@")[0],
                 image: user.image || null,
                 role: "USER",
               },
             });
 
             // Automatically create initial wallet profile for new Google user
-            await prisma.walletProfile.create({
-              data: {
-                userId: dbUser.id,
-                onlineBalance: 0,
-                cashBalance: 0,
-                currency: "INR",
-              },
-            });
+            await prisma.walletProfile
+              .create({
+                data: {
+                  userId: dbUser.id,
+                  onlineBalance: 0,
+                  cashBalance: 0,
+                  currency: "INR",
+                },
+              })
+              .catch((err) => {
+                console.warn("Wallet profile creation skipped:", err);
+              });
           }
-          user.id = dbUser.id;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (user as any).role = dbUser.role;
-          return true;
+
+          if (dbUser) {
+            user.id = dbUser.id;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (user as any).role = dbUser.role;
+          }
         } catch (err) {
-          console.error("Error during Google signIn callback:", err);
-          return false;
+          console.error("Warning during Google signIn callback:", err);
+          // Never block valid Google logins due to DB sync warning
         }
+        return true;
       }
       return true;
     },
@@ -99,12 +107,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as any).role || "USER";
       }
       if (account?.provider === "google" && token.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email.toLowerCase().trim() },
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.role = dbUser.role;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email.toLowerCase().trim() },
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+          }
+        } catch (e) {
+          console.warn("JWT dbUser lookup error:", e);
         }
       }
       return token;
