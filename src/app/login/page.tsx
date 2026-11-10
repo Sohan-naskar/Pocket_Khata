@@ -56,16 +56,10 @@ function LoginForm() {
 
   const handleSelectAdmin = () => {
     setAccountType("ADMIN");
-    setEmail("admin@pocketkhata.app");
-    setPassword("adminPassword123");
   };
 
   const handleSelectUser = () => {
     setAccountType("USER");
-    if (email === "admin@pocketkhata.app") {
-      setEmail("");
-      setPassword("");
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,8 +80,7 @@ function LoginForm() {
       if (res?.error) {
         toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
       } else {
-        const isAdmin =
-          email.trim().toLowerCase() === "admin@pocketkhata.app" || accountType === "ADMIN";
+        const isAdmin = accountType === "ADMIN";
         success(
           "Welcome back!",
           isAdmin ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
@@ -165,7 +158,7 @@ function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={accountType === "ADMIN" ? "admin@pocketkhata.app" : "user@example.com"}
+              placeholder={accountType === "ADMIN" ? "admin@example.com" : "user@example.com"}
               className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
             />
           </div>

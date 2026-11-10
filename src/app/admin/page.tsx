@@ -634,7 +634,7 @@ export default function AdminPage() {
                         value={newAdminEmail}
                         onChange={(e) => setNewAdminEmail(e.target.value)}
                         placeholder={
-                          adminType === "GOOGLE" ? "name@gmail.com" : "admin@pocketkhata.app"
+                          adminType === "GOOGLE" ? "name@gmail.com" : "admin@example.com"
                         }
                         className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
                       />

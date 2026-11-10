@@ -20,7 +20,7 @@ if (!process.env.NEXTAUTH_SECRET) {
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  if (clean === "admin@pocketkhata.app" || clean.startsWith("admin@")) return true;
+  if (clean === "sohannaskar2304@gmail.com") return true;
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === clean) return true;
   if (process.env.ADMIN_EMAILS) {
     const list = process.env.ADMIN_EMAILS.toLowerCase().split(",").map((s) => s.trim());

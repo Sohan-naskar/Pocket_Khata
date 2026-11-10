@@ -19,16 +19,16 @@ async function main() {
   const hashedLegacyStudentPassword = await bcrypt.hash("studentPassword123", 10);
 
   // 1. Create Admin User
+  const adminEmail = process.env.ADMIN_EMAIL || "sohannaskar2304@gmail.com";
   const adminUser = await prisma.user.create({
     data: {
-      name: "System Administrator",
-      email: "admin@pocketkhata.app",
-      passwordHash: hashedAdminPassword,
+      name: "Sohan Naskar",
+      email: adminEmail,
       role: "ADMIN",
       walletProfile: {
         create: {
-          onlineBalance: 25000,
-          cashBalance: 8500,
+          onlineBalance: 0,
+          cashBalance: 0,
           currency: "INR",
         },
       },
@@ -193,7 +193,7 @@ async function main() {
   console.log("✅ Created 3 sample loans (1 Overdue, 1 Pending, 1 Collected)");
   console.log("\n🚀 Demo Credentials:");
   console.log("   User:  user@pocketkhata.app  / userPassword123");
-  console.log("   Admin: admin@pocketkhata.app / adminPassword123");
+  console.log(`   Admin: ${adminEmail} (Google / Admin Account)`);
 }
 
 main()
