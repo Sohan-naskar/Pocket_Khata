@@ -16,8 +16,8 @@ PocketKhata implements a zero-trust authentication boundary designed to prevent 
 |   - /login (Unified Credentials + Google OAuth Sign-In)                           |
 |   - /signup (Strictly creates Personal USER accounts)                            |
 |   - /unauthorized (Custom Neo-Fintech 403 Forbidden page)                        |
-|   - /admin (Platform Telemetry Portal strictly for ADMIN role)                   |
-|   - /dashboard (Personal Finance Dashboard partitioned by userId)                |
+|   - /admin (Open Direct-Access Platform Telemetry Portal - No Auth Required)      |
+|   - /dashboard (Personal Finance Dashboard partitioned by userId - Auth Required)  |
 +-----------------------------------------------------------------------------------+
                                        |
                                HTTP / NextRequest
@@ -25,10 +25,9 @@ PocketKhata implements a zero-trust authentication boundary designed to prevent 
 +-----------------------------------------------------------------------------------+
 |                           EDGE ROUTE MIDDLEWARE (middleware.ts)                   |
 |   - Inspects JWT session token & decoded role                                     |
-|   - /admin/:path* -> Unauthenticated: Redirect /login?callbackUrl=/admin          |
-|   - /admin/:path* -> Authenticated with USER role: Redirect /unauthorized         |
-|   - Unauthenticated on protected routes -> Redirect /login                        |
-|   - Public routes allowed: /login, /signup, /unauthorized, /api/auth/*            |
+|   - /admin/:path* & /api/admin/* -> Public direct access (bypasses auth checks)   |
+|   - Unauthenticated on protected student routes -> Redirect to /login             |
+|   - Public routes allowed: /admin, /api/admin/*, /login, /signup, /unauthorized   |
 +-----------------------------------------------------------------------------------+
                                        |
                                        v
@@ -75,11 +74,14 @@ PocketKhata defines two system roles:
 
 | Requested Path | Authentication State | User Role | Resulting Action |
 | :--- | :--- | :--- | :--- |
-| `/admin/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/admin` |
-| `/admin/*` | Authenticated | `USER` | **Blocked immediately** & redirected to `/unauthorized` |
-| `/admin/*` | Authenticated | `ADMIN` | **Allowed** |
+| `/admin/*` | Unauthenticated / Authenticated | Any | **Allowed** (Open direct-access telemetry portal for local administration; NO authentication required) |
+| `/api/admin/*` | Unauthenticated / Authenticated | Any | **Allowed** (Open direct telemetry data APIs; Strict Financial Privacy enforced) |
 | `/dashboard/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/dashboard` |
-| `/dashboard/*` | Authenticated | `USER` / `ADMIN` | **Allowed** |
+| `/dashboard/*` | Authenticated | `USER` / `ADMIN` | **Allowed** (Personal finance partition) |
+| `/transactions/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/transactions` |
+| `/udhaar/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/udhaar` |
+| `/analytics/*` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/analytics` |
+| `/wallet-settings` | Unauthenticated | N/A | Redirect to `/login?callbackUrl=/wallet-settings` |
 | `/unauthorized` | Any | Any | **Allowed** (Displays Neo-Fintech 403 page) |
 
 ### 3.2 Custom 403 / Unauthorized Page (`src/app/unauthorized/page.tsx`)

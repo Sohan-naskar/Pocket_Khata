@@ -109,12 +109,8 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (userRole === "ADMIN") {
-      fetchAdminData();
-    } else {
-      setIsLoading(false);
-    }
-  }, [userRole]);
+    fetchAdminData();
+  }, []);
 
   // Create New Admin Handler
   const handleCreateAdmin = async (e: React.FormEvent) => {
@@ -218,68 +214,6 @@ export default function AdminPage() {
       setUpdatingUserId(null);
     }
   };
-
-  // Non-admin guard view - Displays explicit error on the page if accessed by an unauthorized account
-  if (userRole !== "ADMIN") {
-    return (
-      <DashboardShell>
-        {() => (
-          <div className="max-w-md mx-auto py-12 px-4 text-center space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto shadow-xl shadow-rose-500/10">
-              <ShieldAlert className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                403 &bull; Unauthorized Account
-              </span>
-              <h1 className="text-2xl font-extrabold text-white tracking-tight">
-                Access Denied
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Only registered <strong className="text-purple-400">System Administrators</strong> can log into and access the Admin Platform Telemetry page.
-              </p>
-            </div>
-
-            {/* Account Details Box */}
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-left space-y-2 text-xs">
-              <div className="flex items-center justify-between text-slate-400">
-                <span>Signed In As:</span>
-                <span className="font-mono text-white font-medium truncate max-w-[200px]">
-                  {session?.user?.email || "Guest"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-slate-400">
-                <span>Account Role:</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  {userRole} (Personal Account)
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-slate-400 pt-1 border-t border-slate-800/80">
-                <span>Admin Status:</span>
-                <span className="text-rose-400 font-semibold">Not Authorized</span>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-400 leading-relaxed">
-              If you believe this is an error, please sign out and log in with your authorized admin account, or ask an existing System Admin to grant you admin privileges.
-            </p>
-
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition h-10 shadow-md shadow-indigo-600/30 active:scale-[0.99]"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Return to Login Page
-              </button>
-            </div>
-          </div>
-        )}
-      </DashboardShell>
-    );
-  }
 
   return (
     <DashboardShell>

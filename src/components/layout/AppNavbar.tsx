@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Wallet, Menu, Shield, User, LogOut, Calendar } from "lucide-react";
 import { formatDateDDMMYYYY } from "@/lib/date-utils";
@@ -20,6 +21,8 @@ export function AppNavbar({
   onOpenLendModal,
 }: AppNavbarProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
+  const isOnAdmin = pathname.startsWith("/admin");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userRole = (session?.user as any)?.role || "USER";
   const todayStr = formatDateDDMMYYYY(new Date());
@@ -47,7 +50,7 @@ export function AppNavbar({
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
                 Pocket<span className="text-indigo-400">Khata</span>
-                {userRole === "ADMIN" && (
+                {(userRole === "ADMIN" || isOnAdmin) && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-0.5">
                     <Shield className="w-2.5 h-2.5" />
                     ADMIN
@@ -90,27 +93,39 @@ export function AppNavbar({
           {/* User profile dropdown button */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
             <Link
-              href="/wallet-settings"
+              href={isOnAdmin ? "/admin" : "/wallet-settings"}
               className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-800 transition min-h-[44px]"
-              title="Wallet & Profile Settings"
+              title={isOnAdmin ? "System Administrator" : "Wallet & Profile Settings"}
             >
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-xs font-bold">
-                {session?.user?.name ? (
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                  isOnAdmin
+                    ? "bg-purple-600/30 border border-purple-500/40 text-purple-300"
+                    : "bg-slate-800 border border-slate-700 text-slate-300"
+                }`}
+              >
+                {isOnAdmin ? (
+                  "S"
+                ) : session?.user?.name ? (
                   session.user.name.charAt(0).toUpperCase()
                 ) : (
                   <User className="w-4 h-4" />
                 )}
               </div>
-              <span className="hidden xl:inline text-xs font-medium text-slate-200 max-w-[120px] truncate">
-                {session?.user?.name || "User"}
+              <span className="hidden xl:inline text-xs font-medium text-slate-200 max-w-[140px] truncate">
+                {isOnAdmin ? "System Administrator" : session?.user?.name || "User"}
               </span>
             </Link>
 
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() =>
+                session?.user
+                  ? signOut({ callbackUrl: "/login" })
+                  : (window.location.href = "/login")
+              }
               className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Sign Out"
-              aria-label="Sign Out"
+              title={session?.user ? "Sign Out" : "Exit to Login"}
+              aria-label={session?.user ? "Sign Out" : "Exit to Login"}
             >
               <LogOut className="w-4 h-4" />
             </button>

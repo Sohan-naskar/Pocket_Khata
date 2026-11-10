@@ -1,22 +1,9 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { checkIsAdminEmail } from "@/auth.config";
 
+// GET: Direct access open telemetry metrics for local administration (No Auth required)
+// STRICT FINANCIAL PRIVACY ENFORCED: Personal monetary data, wallet balances, and amounts are completely excluded.
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // Verify Role is ADMIN
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userRole = (session.user as any).role;
-  const userEmail = session.user.email;
-  if (userRole !== "ADMIN" && !checkIsAdminEmail(userEmail)) {
-    return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
-  }
-
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
 

@@ -59,7 +59,7 @@ export function AppSidebar({
       href: "/wallet-settings",
       icon: SlidersHorizontal,
     },
-    ...(isAdmin
+    ...(isAdmin || pathname.startsWith("/admin")
       ? [
           {
             name: "Admin Portal",

@@ -50,7 +50,7 @@ export function MobileDrawer({
     { name: "Udhaar Tracker", href: "/udhaar", icon: HandCoins },
     { name: "Monthly Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Wallet & Profile", href: "/wallet-settings", icon: SlidersHorizontal },
-    ...(isAdmin
+    ...(isAdmin || pathname.startsWith("/admin")
       ? [{ name: "Admin Portal", href: "/admin", icon: Shield, adminOnly: true }]
       : []),
   ];

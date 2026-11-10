@@ -39,15 +39,20 @@ export const authConfig: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = nextUrl;
 
-      // Public auth endpoints and static assets
-      const isAuthRoute = pathname === "/login" || pathname === "/signup";
+      // 1. Completely public routes:
+      // - /admin & /admin/* (Direct-access open telemetry portal, NO authentication required)
+      // - /api/admin/* (Direct telemetry data APIs)
+      // - /api/auth/* (NextAuth endpoints)
+      // - /unauthorized, /icon.svg
+      const isAdminRoute = pathname.startsWith("/admin");
+      const isAdminApi = pathname.startsWith("/api/admin");
       const isAuthApi = pathname.startsWith("/api/auth");
-      if (isAuthApi || pathname === "/unauthorized") {
+      if (isAdminRoute || isAdminApi || isAuthApi || pathname === "/unauthorized") {
         return true;
       }
 
-      // If user is already logged in, redirect them to dashboard (or /admin for admins)
-      // UNLESS there is an error parameter (e.g. unauthorized admin attempt) that needs to be displayed on /login!
+      // 2. Auth routes (/login, /signup)
+      const isAuthRoute = pathname === "/login" || pathname === "/signup";
       if (isAuthRoute) {
         if (nextUrl.searchParams.has("error")) {
           return true;
@@ -64,9 +69,11 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
-      // If user is NOT logged in: strictly block access to the website
+      // 3. User account protection:
+      // All student user routes (/dashboard, /transactions, /udhaar, /analytics, /wallet-settings, etc.)
+      // strictly require full authentication.
       if (!isLoggedIn) {
-        // Return 401 JSON for unauthenticated API requests
+        // Return 401 JSON for unauthenticated user API requests
         if (pathname.startsWith("/api/")) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -76,12 +83,12 @@ export const authConfig: NextAuthConfig = {
           return Response.redirect(new URL("/login", nextUrl));
         }
 
-        // For all other routes, redirect to login with callback
+        // For all protected user routes, redirect to login with callbackUrl
         const callbackUrl = encodeURIComponent(pathname);
         return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
       }
 
-      // If logged in and visiting root '/', redirect to /admin if ADMIN or /dashboard
+      // If logged in and visiting root '/', redirect to /dashboard (or /admin for admins)
       if (pathname === "/") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const role = (auth?.user as any)?.role;
@@ -90,22 +97,6 @@ export const authConfig: NextAuthConfig = {
           return Response.redirect(new URL("/admin", nextUrl));
         }
         return Response.redirect(new URL("/dashboard", nextUrl));
-      }
-
-      // Admin route authentication and RBAC check
-      const isAdminRoute = pathname.startsWith("/admin");
-      if (isAdminRoute) {
-        if (!isLoggedIn) {
-          const callbackUrl = encodeURIComponent(pathname);
-          return Response.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const role = (auth?.user as any)?.role;
-        const email = auth?.user?.email;
-        if (role !== "ADMIN" && !checkIsAdminEmail(email)) {
-          return Response.redirect(new URL("/unauthorized", nextUrl));
-        }
-        return true;
       }
 
       return true;
