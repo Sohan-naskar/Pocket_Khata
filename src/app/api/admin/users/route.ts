@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { checkIsAdminEmail } from "@/auth.config";
 
 // POST: Create a new System Admin account (Standard Password or Google Account)
 export async function POST(req: Request) {
@@ -13,7 +14,8 @@ export async function POST(req: Request) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callerRole = (session.user as any).role;
-    if (callerRole !== "ADMIN") {
+    const callerEmail = session.user.email;
+    if (callerRole !== "ADMIN" && !checkIsAdminEmail(callerEmail)) {
       return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
     }
 
@@ -137,7 +139,8 @@ export async function PATCH(req: Request) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callerRole = (session.user as any).role;
-    if (callerRole !== "ADMIN") {
+    const callerEmail = session.user.email;
+    if (callerRole !== "ADMIN" && !checkIsAdminEmail(callerEmail)) {
       return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
     }
 

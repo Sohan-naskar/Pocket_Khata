@@ -8,18 +8,44 @@ async function main() {
 
   const adminEmail = (process.env.ADMIN_INIT_EMAIL || "admin@pocketkhata.app").toLowerCase().trim();
   const rawAdminPassword = process.env.ADMIN_INIT_PASSWORD || "adminPassword123";
+  const hashedAdminPassword = await bcrypt.hash(rawAdminPassword, 10);
 
-  // 1. Check if any ADMIN exists in the database
-  const existingAdmin = await prisma.user.findFirst({
-    where: { role: "ADMIN" },
+  // 1. Ensure Super Admin exists with valid password and role
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      passwordHash: hashedAdminPassword,
+      role: "ADMIN",
+    },
+    create: {
+      name: "System Administrator",
+      email: adminEmail,
+      passwordHash: hashedAdminPassword,
+      role: "ADMIN",
+      walletProfile: {
+        create: {
+          onlineBalance: 0,
+          cashBalance: 0,
+          currency: "INR",
+        },
+      },
+    },
   });
 
-  if (!existingAdmin) {
-    const hashedAdminPassword = await bcrypt.hash(rawAdminPassword, 10);
-    const adminUser = await prisma.user.create({
-      data: {
-        name: "System Administrator",
-        email: adminEmail,
+  console.log("✅ Initial Admin successfully seeded. You can now log into /admin.");
+  console.log(`   Admin Email: ${adminUser.email}`);
+
+  // 2. Also ensure configured personal admin (Sohan Naskar) has admin password
+  if (adminEmail !== "sohannaskar2304@gmail.com") {
+    await prisma.user.upsert({
+      where: { email: "sohannaskar2304@gmail.com" },
+      update: {
+        passwordHash: hashedAdminPassword,
+        role: "ADMIN",
+      },
+      create: {
+        name: "Sohan Naskar",
+        email: "sohannaskar2304@gmail.com",
         passwordHash: hashedAdminPassword,
         role: "ADMIN",
         walletProfile: {
@@ -31,41 +57,39 @@ async function main() {
         },
       },
     });
-
-    console.log("✅ Initial Admin successfully seeded. You can now log into /admin.");
-    console.log(`   Admin Email: ${adminUser.email}`);
-  } else {
-    console.log(`ℹ️ Admin already exists in the database: ${existingAdmin.email} (Role: ${existingAdmin.role})`);
   }
 
-  // 2. Ensure default demo user exists for immediate evaluation
+  // 3. Ensure default demo user exists for immediate evaluation
   const demoEmail = "user@pocketkhata.app";
-  const existingDemoUser = await prisma.user.findUnique({
-    where: { email: demoEmail },
-  });
+  const hashedUserPassword = await bcrypt.hash("userPassword123", 10);
 
-  if (!existingDemoUser) {
-    const hashedUserPassword = await bcrypt.hash("userPassword123", 10);
-    const primaryUser = await prisma.user.create({
-      data: {
-        name: "Aryan Sharma",
-        email: demoEmail,
-        passwordHash: hashedUserPassword,
-        role: "USER",
-        walletProfile: {
-          create: {
-            onlineBalance: 4250.0,
-            cashBalance: 1150.0,
-            currency: "INR",
-          },
+  const primaryUser = await prisma.user.upsert({
+    where: { email: demoEmail },
+    update: {
+      passwordHash: hashedUserPassword,
+      role: "USER",
+    },
+    create: {
+      name: "Aryan Sharma",
+      email: demoEmail,
+      passwordHash: hashedUserPassword,
+      role: "USER",
+      walletProfile: {
+        create: {
+          onlineBalance: 4250.0,
+          cashBalance: 1150.0,
+          currency: "INR",
         },
       },
-    });
+    },
+  });
 
-    // Sample everyday transactions
-    const now = new Date();
-    const dayMs = 24 * 60 * 60 * 1000;
+  // Sample everyday transactions
+  const now = new Date();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const txCount = await prisma.transaction.count({ where: { userId: primaryUser.id } });
 
+  if (txCount === 0) {
     await prisma.transaction.createMany({
       data: [
         {
@@ -97,10 +121,9 @@ async function main() {
         },
       ],
     });
-
-    console.log(`✅ Default demo user seeded: ${primaryUser.email}`);
   }
 
+  console.log(`✅ Default demo user seeded: ${primaryUser.email}`);
   console.log("\n🚀 PocketKhata database bootstrap verified successfully.");
 }
 

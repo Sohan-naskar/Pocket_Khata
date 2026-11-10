@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { checkIsAdminEmail } from "@/auth.config";
 
 export async function GET() {
   const session = await auth();
@@ -11,7 +12,8 @@ export async function GET() {
   // Verify Role is ADMIN
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userRole = (session.user as any).role;
-  if (userRole !== "ADMIN") {
+  const userEmail = session.user.email;
+  if (userRole !== "ADMIN" && !checkIsAdminEmail(userEmail)) {
     return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
   }
 

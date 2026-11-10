@@ -104,6 +104,37 @@ function LoginForm() {
     setUnregisteredError("");
     try {
       const cleanEmail = email.trim().toLowerCase();
+
+      // Check user registration & role directly from database
+      const verifyRes = await fetch("/api/auth/verify-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail }),
+      }).catch(() => null);
+
+      const verifyData = verifyRes ? await verifyRes.json() : null;
+
+      if (!verifyData?.exists) {
+        const unauthorizedMsg =
+          "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
+        setUnregisteredError(unauthorizedMsg);
+        toastError("Unauthorized Account", unauthorizedMsg);
+        setIsLoading(false);
+        return;
+      }
+
+      const actualRole = verifyData.role || "USER";
+
+      // If user selected "System Admin" tab, but their registered role in the DB is NOT ADMIN:
+      if (accountType === "ADMIN" && actualRole !== "ADMIN") {
+        setUnauthorizedAccountInfo({
+          email: cleanEmail,
+          role: `${actualRole} (Personal Account)`,
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const res = await signIn("credentials", {
         email: cleanEmail,
         password,
@@ -111,62 +142,17 @@ function LoginForm() {
       });
 
       if (res?.error) {
-        // Check if the failure is due to an unregistered account
-        try {
-          const verifyRes = await fetch("/api/auth/verify-account", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: cleanEmail }),
-          });
-          const verifyData = await verifyRes.json();
-          if (!verifyData?.exists) {
-            const unauthorizedMsg =
-              "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
-            setUnregisteredError(unauthorizedMsg);
-            toastError("Unauthorized Account", unauthorizedMsg);
-            setIsLoading(false);
-            return;
-          }
-        } catch {
-          // Fallback if verification route fails
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (res.error === "UnauthorizedAccount" || (res as any)?.code === "UnauthorizedAccount") {
-          const unauthorizedMsg =
-            "Unauthorized Account: This email is not registered. Please create an account or contact the administrator.";
-          setUnregisteredError(unauthorizedMsg);
-          toastError("Unauthorized Account", unauthorizedMsg);
-        } else {
-          toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Verify the user's actual registered role from the newly established session
-      const userSession = await getSession();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentRole = (userSession?.user as any)?.role || "USER";
-
-      // If user attempted to log in as System Admin, but their account role is NOT ADMIN:
-      if (accountType === "ADMIN" && currentRole !== "ADMIN") {
-        await signOut({ redirect: false });
-        setUnauthorizedAccountInfo({
-          email: email.trim().toLowerCase(),
-          role: `${currentRole} (Personal Account)`,
-        });
+        toastError("Login Failed", "Invalid email or password. Please verify your credentials.");
         setIsLoading(false);
         return;
       }
 
       success(
         "Welcome back!",
-        currentRole === "ADMIN" ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
+        actualRole === "ADMIN" ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
       );
-      const destination = currentRole === "ADMIN" ? "/admin" : callbackUrl;
-      router.push(destination);
-      router.refresh();
+      const destination = actualRole === "ADMIN" ? "/admin" : callbackUrl;
+      window.location.href = destination;
     } catch {
       toastError("Error", "Something went wrong during sign-in. Please try again.");
     } finally {
@@ -179,6 +165,9 @@ function LoginForm() {
     setAdminLoginError("");
     setUnregisteredError("");
     try {
+      if (typeof document !== "undefined") {
+        document.cookie = "pk_signup_flow=; path=/; max-age=0; SameSite=Lax";
+      }
       const targetUrl = accountType === "ADMIN" ? "/admin" : callbackUrl;
       await signIn("google", { callbackUrl: targetUrl });
     } catch {

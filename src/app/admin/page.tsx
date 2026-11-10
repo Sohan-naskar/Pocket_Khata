@@ -6,6 +6,7 @@ import Link from "next/link";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { formatDateDDMMYYYY } from "@/lib/date-utils";
 import { useToast } from "@/components/ui/Toast";
+import { checkIsAdminEmail } from "@/auth.config";
 import {
   Shield,
   Users,
@@ -70,7 +71,8 @@ export default function AdminPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentUserId = session?.user?.id;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userRole = (session?.user as any)?.role || "USER";
+  const isAdmin = (session?.user as any)?.role === "ADMIN" || checkIsAdminEmail(session?.user?.email);
+  const userRole = isAdmin ? "ADMIN" : ((session?.user as any)?.role || "USER");
   const { success, error: toastError } = useToast();
 
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);

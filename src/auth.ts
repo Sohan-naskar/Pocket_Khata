@@ -108,13 +108,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user.email) return "/login?error=UnauthorizedAccount";
         try {
           const email = user.email.toLowerCase().trim();
-          const dbUser = await prisma.user.findUnique({
+          let dbUser = await prisma.user.findUnique({
             where: { email },
           });
 
-          // Reject Google sign-in if the user does NOT exist in the database (no auto-registration)
+          // If user does not exist in the database, only allow auto-creation if this sign-in was initiated from the Signup page
           if (!dbUser) {
-            return "/login?error=UnauthorizedAccount";
+            let isSignupFlow = false;
+            try {
+              const { cookies } = await import("next/headers");
+              isSignupFlow = cookies().get("pk_signup_flow")?.value === "true";
+            } catch {
+              // Ignore if headers unavailable
+            }
+
+            if (isSignupFlow) {
+              const isAdmin = checkIsAdminEmail(email);
+              dbUser = await prisma.user.create({
+                data: {
+                  email,
+                  name: user.name || email.split("@")[0],
+                  image: user.image || null,
+                  role: isAdmin ? "ADMIN" : "USER",
+                },
+              });
+
+              await prisma.walletProfile
+                .create({
+                  data: {
+                    userId: dbUser.id,
+                    onlineBalance: 0,
+                    cashBalance: 0,
+                    currency: "INR",
+                  },
+                })
+                .catch(() => {});
+            } else {
+              return "/login?error=UnauthorizedAccount";
+            }
           }
 
           const isAdmin = checkIsAdminEmail(email);

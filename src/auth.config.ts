@@ -12,6 +12,20 @@ if (!process.env.NEXTAUTH_SECRET) {
   process.env.NEXTAUTH_SECRET = FALLBACK_AUTH_SECRET;
 }
 
+export function checkIsAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  if (clean === "admin@pocketkhata.app") return true;
+  if (clean === "sohannaskar2304@gmail.com") return true;
+  if (process.env.ADMIN_INIT_EMAIL && process.env.ADMIN_INIT_EMAIL.toLowerCase().trim() === clean) return true;
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === clean) return true;
+  if (process.env.ADMIN_EMAILS) {
+    const list = process.env.ADMIN_EMAILS.toLowerCase().split(",").map((s) => s.trim());
+    if (list.includes(clean)) return true;
+  }
+  return false;
+}
+
 export const authConfig: NextAuthConfig = {
   providers: [],
   trustHost: true,
@@ -41,7 +55,8 @@ export const authConfig: NextAuthConfig = {
         if (isLoggedIn) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const role = (auth?.user as any)?.role;
-          if (role === "ADMIN") {
+          const email = auth?.user?.email;
+          if (role === "ADMIN" || checkIsAdminEmail(email)) {
             return Response.redirect(new URL("/admin", nextUrl));
           }
           return Response.redirect(new URL("/dashboard", nextUrl));
@@ -70,7 +85,8 @@ export const authConfig: NextAuthConfig = {
       if (pathname === "/") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const role = (auth?.user as any)?.role;
-        if (role === "ADMIN") {
+        const email = auth?.user?.email;
+        if (role === "ADMIN" || checkIsAdminEmail(email)) {
           return Response.redirect(new URL("/admin", nextUrl));
         }
         return Response.redirect(new URL("/dashboard", nextUrl));
@@ -85,7 +101,8 @@ export const authConfig: NextAuthConfig = {
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const role = (auth?.user as any)?.role;
-        if (role !== "ADMIN") {
+        const email = auth?.user?.email;
+        if (role !== "ADMIN" && !checkIsAdminEmail(email)) {
           return Response.redirect(new URL("/unauthorized", nextUrl));
         }
         return true;
@@ -98,6 +115,10 @@ export const authConfig: NextAuthConfig = {
         token.id = user.id;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         token.role = (user as any).role || "USER";
+      }
+      const email = (token.email || user?.email)?.toLowerCase().trim();
+      if (checkIsAdminEmail(email)) {
+        token.role = "ADMIN";
       }
       return token;
     },

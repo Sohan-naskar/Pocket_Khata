@@ -82,10 +82,9 @@ function SignupForm() {
       });
 
       if (signInRes?.error) {
-        router.push("/login");
+        window.location.href = "/login";
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        window.location.href = callbackUrl || "/dashboard";
       }
     } catch {
       toastError("Error", "Network error occurred. Please try again.");
@@ -96,7 +95,10 @@ function SignupForm() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn("google", { callbackUrl });
+      if (typeof document !== "undefined") {
+        document.cookie = "pk_signup_flow=true; path=/; max-age=600; SameSite=Lax";
+      }
+      await signIn("google", { callbackUrl: "/dashboard" });
     } catch {
       toastError("Google Sign-In", "Unable to sign in with Google. Check client credentials.");
       setIsGoogleLoading(false);
