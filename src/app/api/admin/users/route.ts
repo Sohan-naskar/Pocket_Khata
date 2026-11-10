@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
-// POST: Create a new System Admin account
+// POST: Create a new System Admin account (Standard Password or Google Account)
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -18,21 +18,31 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, email, password } = body;
+    const { name, email, password, isGoogleAccount } = body;
 
-    if (!name || !email || !password) {
+    if (!email) {
       return NextResponse.json(
-        { error: "Name, email, and password are required" },
+        { error: "Email address is required" },
         { status: 400 }
       );
     }
 
     const cleanEmail = String(email).toLowerCase().trim();
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
+
+    // Standard credential validation if not Google account
+    if (!isGoogleAccount) {
+      if (!name || !password) {
+        return NextResponse.json(
+          { error: "Name, email, and password are required for standard accounts" },
+          { status: 400 }
+        );
+      }
+      if (password.length < 6) {
+        return NextResponse.json(
+          { error: "Password must be at least 6 characters" },
+          { status: 400 }
+        );
+      }
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -40,17 +50,45 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "An account with this email address already exists" },
-        { status: 409 }
-      );
+      // If it's a Google account or the admin is promoting an existing account
+      if (isGoogleAccount || existingUser.role !== "ADMIN") {
+        const updated = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            role: "ADMIN",
+            name: name?.trim() || existingUser.name,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAt: true,
+          },
+        });
+        return NextResponse.json(
+          {
+            message: `Account (${cleanEmail}) has been granted System Admin access.`,
+            user: updated,
+          },
+          { status: 200 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: "This email address is already an active System Admin." },
+          { status: 409 }
+        );
+      }
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    let passwordHash: string | null = null;
+    if (password && password.length >= 6) {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
 
     const newAdmin = await prisma.user.create({
       data: {
-        name: name.trim(),
+        name: name?.trim() || cleanEmail.split("@")[0],
         email: cleanEmail,
         passwordHash,
         role: "ADMIN",
@@ -73,7 +111,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: "New System Admin created successfully",
+        message: isGoogleAccount
+          ? `Google account (${cleanEmail}) provisioned as System Admin.`
+          : "New System Admin created successfully.",
         user: newAdmin,
       },
       { status: 201 }
@@ -161,4 +201,3 @@ export async function PATCH(req: Request) {
     );
   }
 }
-
