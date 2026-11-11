@@ -11,12 +11,12 @@
 PocketKhata implements a clean, self-contained authentication architecture utilizing strictly **Username/Email and Password** authentication across all authentication screens, with all third-party OAuth (including Google) completely removed:
 
 1. **Unified Login Portal (`/login`)**:
-   - Contains an **Account Type** selector: **[ Personal Account ]** vs **[ System Admin ]** (styled with high-contrast active tabs).
-   - **Personal Account**: Students and individuals log in using **Username or Email** + **Password**.
-   - **System Admin**: Authorized platform administrators log in using **Admin Username or Email** + **Password**.
+   - Contains an **Account Type** selector: **[ Student Account ]** vs **[ System Admin ]** (styled with high-contrast active tabs).
+   - **Student Account**: Students log in using **Username or Email** + **Password** with complete credential state isolation.
+   - **System Admin**: Authorized platform administrators log in using **Admin Username or Email** + **Password** with complete credential state isolation.
    - If an unauthorized account attempts to log in under the System Admin tab, an explicit **403 Access Denied** screen is rendered directly on the login page with only one option: **Return to Login Page**.
 2. **Account Creation (`/signup`)**:
-   - Strictly provisions **Personal Accounts (USER)** only (no System Admin option on signup).
+   - Strictly provisions **Student Accounts (USER)** only (no System Admin option on signup).
    - Fields: **Full Name**, **Username**, **Email Address**, and **Password (min 6 chars)**.
    - Saves `username` and `email` uniquely to the `User` database table.
 3. **Self-Service Password Reset (`/forgot-password` & `/reset-password`)**:

@@ -78,7 +78,7 @@ export default function UnauthorizedPage() {
                   Account Role:
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  {userRole} (Personal Account)
+                  {userRole} (Student Account)
                 </span>
               </div>
               <div className="flex items-center justify-between text-slate-400 pt-2 border-t border-slate-800/80">

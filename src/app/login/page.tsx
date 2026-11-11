@@ -11,7 +11,7 @@ import {
   Loader2,
   ArrowRight,
   Shield,
-  UserCircle2,
+  GraduationCap,
   ShieldAlert,
   ArrowLeft,
   Eye,
@@ -27,9 +27,17 @@ function LoginForm() {
   const { success, error: toastError } = useToast();
 
   const [accountType, setAccountType] = useState<"USER" | "ADMIN">("USER");
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+
+  // Strict Credential Isolation: Separate state for Student Account
+  const [studentIdentifier, setStudentIdentifier] = useState("");
+  const [studentPassword, setStudentPassword] = useState("");
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
+
+  // Strict Credential Isolation: Separate state for System Admin Account
+  const [adminIdentifier, setAdminIdentifier] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+
   const [adminLoginError, setAdminLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -46,7 +54,7 @@ function LoginForm() {
     if (errorParam === "unauthorized" || errorParam === "AdminUnauthorized" || errorParam === "AccessDenied") {
       setUnauthorizedAccountInfo({
         email: attemptEmail || session?.user?.email || "user@pocketkhata.app",
-        role: "USER (Personal Account)",
+        role: "USER (Student Account)",
       });
     } else if (errorParam === "CredentialsSignin") {
       toastError("Authentication Failed", "Invalid username/email or password. Please verify your credentials.");
@@ -72,56 +80,88 @@ function LoginForm() {
     setUnauthorizedAccountInfo(null);
     setAccountType("USER");
     setAdminLoginError("");
-    setIdentifier("");
-    setPassword("");
+    setStudentIdentifier("");
+    setStudentPassword("");
+    setAdminIdentifier("");
+    setAdminPassword("");
     router.replace("/login");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!identifier || !password) {
-      toastError("Missing Fields", "Please enter your username/email and password.");
-      return;
+
+    if (accountType === "USER") {
+      if (!studentIdentifier || !studentPassword) {
+        toastError("Missing Fields", "Please enter your student username/email and password.");
+        return;
+      }
+    } else {
+      if (!adminIdentifier || !adminPassword) {
+        toastError("Missing Fields", "Please enter your admin username/email and password.");
+        return;
+      }
     }
 
     setIsLoading(true);
     setAdminLoginError("");
+
     try {
-      const cleanIdentifier = identifier.trim().toLowerCase();
-      const res = await signIn("credentials", {
-        email: cleanIdentifier,
-        password,
-        redirect: false,
-      });
+      if (accountType === "ADMIN") {
+        const cleanAdminId = adminIdentifier.trim().toLowerCase();
 
-      if (res?.error) {
-        toastError("Login Failed", "Invalid username/email or password. Please verify your credentials.");
-        setIsLoading(false);
-        return;
-      }
+        // 1. Pre-verify if account exists and whether it has permission to log in as ADMIN
+        const verifyRes = await fetch("/api/auth/verify-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanAdminId }),
+        }).catch(() => null);
 
-      // Verify the user's actual registered role from the newly established session
-      const userSession = await getSession();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentRole = (userSession?.user as any)?.role || "USER";
+        if (verifyRes && verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          if (verifyData.exists && verifyData.role && verifyData.role !== "ADMIN") {
+            setUnauthorizedAccountInfo({
+              email: cleanAdminId,
+              role: `${verifyData.role} (Student Account)`,
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
 
-      // If user attempted to log in as System Admin, but their account role is NOT ADMIN:
-      if (accountType === "ADMIN" && currentRole !== "ADMIN") {
-        await signOut({ redirect: false });
-        setUnauthorizedAccountInfo({
-          email: cleanIdentifier,
-          role: `${currentRole} (Personal Account)`,
+        // 2. Perform NextAuth Credentials Sign-In
+        const res = await signIn("credentials", {
+          email: cleanAdminId,
+          password: adminPassword,
+          redirect: false,
         });
-        setIsLoading(false);
-        return;
-      }
 
-      success(
-        "Welcome back!",
-        currentRole === "ADMIN" ? "Redirecting to Admin Portal..." : "Redirecting to your dashboard..."
-      );
-      const destination = currentRole === "ADMIN" ? "/admin" : callbackUrl;
-      window.location.href = destination;
+        if (res?.error) {
+          toastError("Login Failed", "Invalid admin credentials. Please verify your username/email and password.");
+          setIsLoading(false);
+          return;
+        }
+
+        success("Welcome back!", "Redirecting to Admin Portal...");
+        window.location.href = "/admin";
+      } else {
+        // Student login
+        const cleanStudentId = studentIdentifier.trim().toLowerCase();
+
+        const res = await signIn("credentials", {
+          email: cleanStudentId,
+          password: studentPassword,
+          redirect: false,
+        });
+
+        if (res?.error) {
+          toastError("Login Failed", "Invalid student username/email or password. Please verify your credentials.");
+          setIsLoading(false);
+          return;
+        }
+
+        success("Welcome back!", "Redirecting to your student dashboard...");
+        window.location.href = callbackUrl || "/dashboard";
+      }
     } catch {
       toastError("Error", "Something went wrong during sign-in. Please try again.");
     } finally {
@@ -162,7 +202,7 @@ function LoginForm() {
           <div className="flex items-center justify-between text-slate-400">
             <span>Account Role:</span>
             <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-              {unauthorizedAccountInfo.role || "USER (Personal Account)"}
+              {unauthorizedAccountInfo.role || "USER (Student Account)"}
             </span>
           </div>
           <div className="flex items-center justify-between text-slate-400 pt-1.5 border-t border-slate-800/80">
@@ -207,8 +247,8 @@ function LoginForm() {
                 : "text-slate-400 hover:text-white border border-transparent"
             }`}
           >
-            <UserCircle2 className="w-3.5 h-3.5" />
-            <span>Personal Account</span>
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>Student Account</span>
           </button>
           <button
             type="button"
@@ -238,32 +278,40 @@ function LoginForm() {
         {/* Username or Email Address */}
         <div>
           <label
-            htmlFor="identifier"
+            htmlFor={accountType === "ADMIN" ? "admin-identifier" : "student-identifier"}
             className="block text-[11px] font-medium text-slate-300 mb-1"
           >
             {accountType === "ADMIN" ? "Admin Username or Email" : "Username or Email"}
           </label>
           <div className="relative">
             <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              id="identifier"
-              type="text"
-              required
-              autoComplete="username email"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder={
-                accountType === "ADMIN"
-                  ? "Admin@example.com or Admin"
-                  : "User@example.com or Username"
-              }
-              disabled={isLoading}
-              className={`w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:ring-1 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9 ${
-                accountType === "ADMIN"
-                  ? "focus:border-purple-500 focus:ring-purple-500"
-                  : "focus:border-indigo-500 focus:ring-indigo-500"
-              }`}
-            />
+            {accountType === "ADMIN" ? (
+              <input
+                id="admin-identifier"
+                key="admin-id-input"
+                type="text"
+                required
+                autoComplete="username email"
+                value={adminIdentifier}
+                onChange={(e) => setAdminIdentifier(e.target.value)}
+                placeholder="admin@pocketkhata.app or admin"
+                disabled={isLoading}
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9"
+              />
+            ) : (
+              <input
+                id="student-identifier"
+                key="student-id-input"
+                type="text"
+                required
+                autoComplete="username email"
+                value={studentIdentifier}
+                onChange={(e) => setStudentIdentifier(e.target.value)}
+                placeholder="student@example.com or username"
+                disabled={isLoading}
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9"
+              />
+            )}
           </div>
         </div>
 
@@ -271,7 +319,7 @@ function LoginForm() {
         <div>
           <div className="flex items-center justify-between mb-1">
             <label
-              htmlFor="password"
+              htmlFor={accountType === "ADMIN" ? "admin-password" : "student-password"}
               className="block text-[11px] font-medium text-slate-300"
             >
               Password (min 6 chars)
@@ -287,40 +335,63 @@ function LoginForm() {
           </div>
           <div className="relative">
             <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              disabled={isLoading}
-              className={`w-full pl-8 pr-11 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:ring-1 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9 ${
-                accountType === "ADMIN"
-                  ? "focus:border-purple-500 focus:ring-purple-500"
-                  : "focus:border-indigo-500 focus:ring-indigo-500"
-              }`}
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <Eye
-                  className={`w-4 h-4 ${
-                    accountType === "ADMIN"
-                      ? "text-purple-400 hover:text-purple-300"
-                      : "text-indigo-400 hover:text-indigo-300"
-                  }`}
+            {accountType === "ADMIN" ? (
+              <>
+                <input
+                  id="admin-password"
+                  key="admin-pass-input"
+                  type={showAdminPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  disabled={isLoading}
+                  className="w-full pl-8 pr-11 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9"
                 />
-              ) : (
-                <EyeOff className="w-4 h-4 text-slate-400 hover:text-slate-200" />
-              )}
-            </button>
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowAdminPassword((prev) => !prev)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+                  aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                >
+                  {showAdminPassword ? (
+                    <Eye className="w-4 h-4 text-purple-400 hover:text-purple-300" />
+                  ) : (
+                    <EyeOff className="w-4 h-4 text-slate-400 hover:text-slate-200" />
+                  )}
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  id="student-password"
+                  key="student-pass-input"
+                  type={showStudentPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={studentPassword}
+                  onChange={(e) => setStudentPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  disabled={isLoading}
+                  className="w-full pl-8 pr-11 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowStudentPassword((prev) => !prev)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+                  aria-label={showStudentPassword ? "Hide password" : "Show password"}
+                >
+                  {showStudentPassword ? (
+                    <Eye className="w-4 h-4 text-indigo-400 hover:text-indigo-300" />
+                  ) : (
+                    <EyeOff className="w-4 h-4 text-slate-400 hover:text-slate-200" />
+                  )}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -345,7 +416,7 @@ function LoginForm() {
                 <span>
                   {accountType === "ADMIN"
                     ? "Sign In as System Admin"
-                    : "Sign In & Open Khata"}
+                    : "Sign In as Student"}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </>

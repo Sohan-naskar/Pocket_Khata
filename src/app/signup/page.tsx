@@ -12,7 +12,7 @@ import {
   AtSign,
   Loader2,
   ArrowRight,
-  UserCircle2,
+  GraduationCap,
   Eye,
   EyeOff,
   ShieldAlert,
@@ -135,8 +135,8 @@ export default function SignupPage() {
             </label>
             <div className="p-0.5 bg-slate-900/90 rounded-lg border border-slate-800">
               <div className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-md text-[11px] font-semibold bg-indigo-600/25 text-indigo-300 border border-indigo-500/50 shadow-sm">
-                <UserCircle2 className="w-3.5 h-3.5" />
-                <span>Personal Account (Student)</span>
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Student Account</span>
               </div>
             </div>
           </div>
