@@ -198,11 +198,10 @@ function LoginForm() {
           <button
             type="button"
             onClick={handleSelectUser}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition ${
-              accountType === "USER"
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition ${accountType === "USER"
                 ? "bg-indigo-600/25 text-indigo-300 border border-indigo-500/50 shadow-sm"
                 : "text-slate-400 hover:text-white border border-transparent"
-            }`}
+              }`}
           >
             <UserCircle2 className="w-4 h-4" />
             <span>Personal Account</span>
@@ -210,11 +209,10 @@ function LoginForm() {
           <button
             type="button"
             onClick={handleSelectAdmin}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition ${
-              accountType === "ADMIN"
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition ${accountType === "ADMIN"
                 ? "bg-purple-600/25 text-purple-300 border border-purple-500/50 shadow-sm"
                 : "text-slate-400 hover:text-white border border-transparent"
-            }`}
+              }`}
           >
             <Shield className="w-4 h-4" />
             <span>System Admin</span>
@@ -251,8 +249,8 @@ function LoginForm() {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder={
                 accountType === "ADMIN"
-                  ? "admin@example.com or admin"
-                  : "user@example.com or username"
+                  ? "Admin@example.com or Admin"
+                  : "User@example.com or Username"
               }
               disabled={isLoading}
               className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
@@ -289,11 +287,10 @@ function LoginForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition h-10 active:scale-[0.99] ${
-              accountType === "ADMIN"
+            className={`w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition h-10 active:scale-[0.99] ${accountType === "ADMIN"
                 ? "bg-purple-600 hover:bg-purple-500 shadow-purple-600/30"
                 : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30"
-            }`}
+              }`}
           >
             {isLoading ? (
               <>
