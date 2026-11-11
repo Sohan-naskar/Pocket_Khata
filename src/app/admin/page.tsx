@@ -94,7 +94,20 @@ export default function AdminPage() {
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminConfirmPassword, setNewAdminConfirmPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [showAdminConfirmPassword, setShowAdminConfirmPassword] = useState(false);
   const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
+
+  const handleCloseAdminModal = () => {
+    setIsModalOpen(false);
+    setNewAdminName("");
+    setNewAdminEmail("");
+    setNewAdminPassword("");
+    setNewAdminConfirmPassword("");
+    setShowAdminPassword(false);
+    setShowAdminConfirmPassword(false);
+  };
 
   // Role action loader tracking
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
@@ -145,13 +158,18 @@ export default function AdminPage() {
   // Create New Admin Handler (Email + Password only)
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAdminEmail || !newAdminName || !newAdminPassword) {
-      toastError("Missing Information", "Please enter the admin's name, email, and password.");
+    if (!newAdminEmail || !newAdminName || !newAdminPassword || !newAdminConfirmPassword) {
+      toastError("Missing Information", "Please enter the admin's name, email, password, and confirm password.");
       return;
     }
 
     if (newAdminPassword.length < 6) {
       toastError("Weak Password", "Password must be at least 6 characters.");
+      return;
+    }
+
+    if (newAdminPassword !== newAdminConfirmPassword) {
+      toastError("Password Mismatch", "Passwords do not match. Please verify both fields.");
       return;
     }
 
@@ -177,10 +195,7 @@ export default function AdminPage() {
         "Admin Configured!",
         `${data.user.name} has been provisioned as a System Admin.`
       );
-      setIsModalOpen(false);
-      setNewAdminName("");
-      setNewAdminEmail("");
-      setNewAdminPassword("");
+      handleCloseAdminModal();
       fetchAdminData();
     } catch {
       toastError("Network Error", "Failed to connect to the server. Please try again.");
@@ -865,7 +880,7 @@ export default function AdminPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseAdminModal}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
                   >
                     <X className="w-4 h-4" />
@@ -883,7 +898,7 @@ export default function AdminPage() {
                       Full Name
                     </label>
                     <div className="relative">
-                      <User className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <User className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         id="admin-name"
                         type="text"
@@ -905,7 +920,7 @@ export default function AdminPage() {
                       Admin Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         id="admin-email"
                         type="email"
@@ -927,16 +942,64 @@ export default function AdminPage() {
                       Password (min 6 characters)
                     </label>
                     <div className="relative">
-                      <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         id="admin-password"
-                        type="password"
+                        type={showAdminPassword ? "text" : "password"}
                         required
                         value={newAdminPassword}
                         onChange={(e) => setNewAdminPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
+                        className="w-full pl-8 pr-11 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
                       />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowAdminPassword((prev) => !prev)}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+                        aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                      >
+                        {showAdminPassword ? (
+                          <Eye className="w-4 h-4 text-purple-400 hover:text-purple-300" />
+                        ) : (
+                          <EyeOff className="w-4 h-4 text-slate-400 hover:text-slate-200" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label
+                      htmlFor="admin-confirm-password"
+                      className="block text-[11px] font-medium text-slate-300 mb-1"
+                    >
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        id="admin-confirm-password"
+                        type={showAdminConfirmPassword ? "text" : "password"}
+                        required
+                        value={newAdminConfirmPassword}
+                        onChange={(e) => setNewAdminConfirmPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full pl-8 pr-11 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition h-9"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowAdminConfirmPassword((prev) => !prev)}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+                        aria-label={showAdminConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                      >
+                        {showAdminConfirmPassword ? (
+                          <Eye className="w-4 h-4 text-purple-400 hover:text-purple-300" />
+                        ) : (
+                          <EyeOff className="w-4 h-4 text-slate-400 hover:text-slate-200" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
