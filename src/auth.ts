@@ -28,7 +28,6 @@ if (process.env.VERCEL) {
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  if (clean === "sohannaskar2304@gmail.com") return true;
   if (clean === "admin@pocketkhata.app") return true;
   if (process.env.ADMIN_INIT_EMAIL && process.env.ADMIN_INIT_EMAIL.toLowerCase().trim() === clean) return true;
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === clean) return true;

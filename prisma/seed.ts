@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Running PocketKhata Database Seed & Bootstrap...");
 
-  const adminEmail = (process.env.ADMIN_INIT_EMAIL || "sohannaskar2304@gmail.com").toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_INIT_EMAIL || "admin@pocketkhata.app").toLowerCase().trim();
   const rawAdminPassword = process.env.ADMIN_INIT_PASSWORD || "adminPassword123";
   const hashedAdminPassword = await bcrypt.hash(rawAdminPassword, 10);
 
@@ -18,7 +18,8 @@ async function main() {
       role: "ADMIN",
     },
     create: {
-      name: "Sohan Naskar",
+      name: "System Admin",
+      username: "admin",
       email: adminEmail,
       passwordHash: hashedAdminPassword,
       role: "ADMIN",

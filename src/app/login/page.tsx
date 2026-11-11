@@ -45,7 +45,7 @@ function LoginForm() {
 
     if (errorParam === "unauthorized" || errorParam === "AdminUnauthorized" || errorParam === "AccessDenied") {
       setUnauthorizedAccountInfo({
-        email: attemptEmail || session?.user?.email || "sohannaskar2004@gmail.com",
+        email: attemptEmail || session?.user?.email || "user@pocketkhata.app",
         role: "USER (Personal Account)",
       });
     } else if (errorParam === "CredentialsSignin") {

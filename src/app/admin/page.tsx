@@ -30,6 +30,8 @@ import {
   HandCoins,
   FolderEdit,
   ReceiptText,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 interface AdminMetrics {
