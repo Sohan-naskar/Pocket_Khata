@@ -78,8 +78,13 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
-      // 5. Student / User Auth Routes (/login, /signup)
-      if (pathname === "/login" || pathname === "/signup") {
+      // 5. Student / User Auth Routes (/login, /signup, /forgot-password, /reset-password)
+      if (
+        pathname === "/login" ||
+        pathname === "/signup" ||
+        pathname === "/forgot-password" ||
+        pathname === "/reset-password"
+      ) {
         if (nextUrl.searchParams.has("error")) {
           return true;
         }

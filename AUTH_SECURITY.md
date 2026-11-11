@@ -19,12 +19,16 @@ PocketKhata implements a clean, self-contained authentication architecture utili
    - Strictly provisions **Personal Accounts (USER)** only (no System Admin option on signup).
    - Fields: **Full Name**, **Username**, **Email Address**, and **Password (min 6 chars)**.
    - Saves `username` and `email` uniquely to the `User` database table.
+3. **Self-Service Password Reset (`/forgot-password` & `/reset-password`)**:
+   - Secure token-based password reset using `PasswordResetToken` (1-hour expiry).
+   - Anti-enumeration protection on request submission.
 
 ```
 +-----------------------------------------------------------------------------------+
 |                                 CLIENT VIEWPORT                                   |
 |   - /login (Unified Credentials Login: Personal Account & System Admin tabs)      |
 |   - /signup (Personal Account Creation: Full Name, Username, Email, Password)     |
+|   - /forgot-password & /reset-password (Self-service recovery with 1hr token)     |
 |   - /unauthorized (403 Access Denied Guard with Single "Return to Login Page")    |
 |   - /admin (Protected Admin Telemetry & User Registry - Requires ADMIN Role)      |
 |   - /dashboard (Personal Finance Dashboard - Requires USER Role)                  |

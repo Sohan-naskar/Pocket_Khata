@@ -269,12 +269,22 @@ function LoginForm() {
 
         {/* Password */}
         <div>
-          <label
-            htmlFor="password"
-            className="block text-[11px] font-medium text-slate-300 mb-1"
-          >
-            Password (min 6 chars)
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label
+              htmlFor="password"
+              className="block text-[11px] font-medium text-slate-300"
+            >
+              Password (min 6 chars)
+            </label>
+            {accountType === "USER" && (
+              <Link
+                href="/forgot-password"
+                className="text-[11px] text-indigo-400 hover:text-indigo-300 transition"
+              >
+                Forgot password?
+              </Link>
+            )}
+          </div>
           <div className="relative">
             <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
