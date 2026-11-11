@@ -258,7 +258,11 @@ function LoginForm() {
                   : "User@example.com or Username"
               }
               disabled={isLoading}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9"
+              className={`w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:ring-1 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9 ${
+                accountType === "ADMIN"
+                  ? "focus:border-purple-500 focus:ring-purple-500"
+                  : "focus:border-indigo-500 focus:ring-indigo-500"
+              }`}
             />
           </div>
         </div>
@@ -282,17 +286,27 @@ function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
               disabled={isLoading}
-              className="w-full pl-8 pr-9 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9"
+              className={`w-full pl-8 pr-11 py-1.5 rounded-lg bg-slate-900 border border-slate-700/80 focus:ring-1 text-xs text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-9 ${
+                accountType === "ADMIN"
+                  ? "focus:border-purple-500 focus:ring-purple-500"
+                  : "focus:border-indigo-500 focus:ring-indigo-500"
+              }`}
             />
             <button
               type="button"
               tabIndex={-1}
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-0.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                <Eye className="w-4 h-4 text-indigo-400 hover:text-indigo-300" />
+                <Eye
+                  className={`w-4 h-4 ${
+                    accountType === "ADMIN"
+                      ? "text-purple-400 hover:text-purple-300"
+                      : "text-indigo-400 hover:text-indigo-300"
+                  }`}
+                />
               ) : (
                 <EyeOff className="w-4 h-4 text-slate-400 hover:text-slate-200" />
               )}
