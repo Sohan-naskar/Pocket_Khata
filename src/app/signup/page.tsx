@@ -171,7 +171,7 @@ export default function SignupPage() {
                     setName(e.target.value);
                     if (formError) setFormError("");
                   }}
-                  placeholder="user name"
+                  placeholder="Name"
                   disabled={isLoading}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
                 />
@@ -197,7 +197,7 @@ export default function SignupPage() {
                     setUsername(e.target.value);
                     if (formError) setFormError("");
                   }}
-                  placeholder="aryansharma"
+                  placeholder="User Name"
                   disabled={isLoading}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
                 />
