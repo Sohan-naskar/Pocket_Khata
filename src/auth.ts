@@ -1,6 +1,5 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { skipCSRFCheck } from "@auth/core";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/auth.config";
@@ -21,6 +20,11 @@ if (!process.env.NEXTAUTH_SECRET) {
   process.env.NEXTAUTH_SECRET = FALLBACK_AUTH_SECRET;
 }
 
+// On Vercel, delete hardcoded NEXTAUTH_URL so dynamic host detection works
+if (process.env.VERCEL) {
+  delete process.env.NEXTAUTH_URL;
+}
+
 export function checkIsAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
@@ -37,7 +41,7 @@ export function checkIsAdminEmail(email?: string | null): boolean {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  skipCSRFCheck: skipCSRFCheck,
+  basePath: "/api/auth",
   providers: [
     Credentials({
       id: "credentials",

@@ -1,5 +1,4 @@
 import type { NextAuthConfig } from "next-auth";
-import { skipCSRFCheck } from "@auth/core";
 
 const FALLBACK_AUTH_SECRET =
   process.env.AUTH_SECRET ||
@@ -11,6 +10,11 @@ if (!process.env.AUTH_SECRET) {
 }
 if (!process.env.NEXTAUTH_SECRET) {
   process.env.NEXTAUTH_SECRET = FALLBACK_AUTH_SECRET;
+}
+
+// On Vercel, delete hardcoded NEXTAUTH_URL so dynamic host detection works
+if (process.env.VERCEL) {
+  delete process.env.NEXTAUTH_URL;
 }
 
 export function checkIsAdminEmail(email?: string | null): boolean {
@@ -28,7 +32,7 @@ export function checkIsAdminEmail(email?: string | null): boolean {
 }
 
 export const authConfig: NextAuthConfig = {
-  skipCSRFCheck: skipCSRFCheck,
+  basePath: "/api/auth",
   providers: [],
   trustHost: true,
   secret: FALLBACK_AUTH_SECRET,
