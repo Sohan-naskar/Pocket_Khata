@@ -6,7 +6,7 @@ import { checkIsAdminEmail } from "@/auth";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, password, role = "USER", startingOnline = 0, startingCash = 0 } = body;
+    const { name, username, email, password, role = "USER", startingOnline = 0, startingCash = 0 } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -16,6 +16,9 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = String(email).toLowerCase().trim();
+    const cleanUsername = username
+      ? String(username).toLowerCase().trim().replace(/[^a-z0-9_.-]/g, "")
+      : cleanEmail.split("@")[0];
 
     if (password.length < 6) {
       return NextResponse.json(
@@ -24,13 +27,21 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: cleanEmail },
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { username: cleanUsername }],
+      },
     });
 
     if (existingUser) {
+      if (existingUser.email === cleanEmail) {
+        return NextResponse.json(
+          { error: "An account with this email already exists" },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
-        { error: "An account with this email already exists" },
+        { error: "This username is already taken. Please choose another." },
         { status: 409 }
       );
     }
@@ -41,7 +52,8 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        name: name?.trim() || cleanEmail.split("@")[0],
+        name: name?.trim() || cleanUsername,
+        username: cleanUsername,
         email: cleanEmail,
         passwordHash,
         role: assignedRole,

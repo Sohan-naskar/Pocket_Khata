@@ -95,24 +95,24 @@ function AdminLoginForm() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Admin Email */}
+          {/* Admin Username or Email */}
           <div>
             <label
               htmlFor="admin-email"
               className="block text-xs font-medium text-slate-300 mb-1.5"
             >
-              Admin Email Address
+              Admin Username or Email
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 id="admin-email"
-                type="email"
+                type="text"
                 required
-                autoComplete="email"
+                autoComplete="username email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@pocketkhata.app"
+                placeholder="admin@example.com or username"
                 disabled={isLoading}
                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
               />
@@ -168,7 +168,7 @@ function AdminLoginForm() {
         {/* Security Note */}
         <div className="pt-2 border-t border-slate-800/80 flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center">
           <LockKeyhole className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span>Strict zero-trust security. Google OAuth disabled for admin accounts.</span>
+          <span>Strict zero-trust security. Role-based administrator credentials.</span>
         </div>
       </div>
 
