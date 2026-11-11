@@ -13,6 +13,9 @@ import {
   Loader2,
   ArrowRight,
   UserCircle2,
+  Eye,
+  EyeOff,
+  ShieldAlert,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -24,17 +27,34 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password) {
-      toastError("Missing Fields", "Please complete all required fields.");
+    setFormError("");
+
+    if (!name || !email || !password || !confirmPassword) {
+      const msg = "Please complete all required fields.";
+      setFormError(msg);
+      toastError("Missing Fields", msg);
       return;
     }
 
     if (password.length < 6) {
-      toastError("Weak Password", "Password must be at least 6 characters.");
+      const msg = "Password must be at least 6 characters long.";
+      setFormError(msg);
+      toastError("Weak Password", msg);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      const msg = "Passwords do not match.";
+      setFormError(msg);
+      toastError("Password Mismatch", msg);
       return;
     }
 
@@ -57,7 +77,9 @@ export default function SignupPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        toastError("Registration Failed", data.error || "Unable to create account.");
+        const msg = data.error || "Unable to create account.";
+        setFormError(msg);
+        toastError("Registration Failed", msg);
         setIsLoading(false);
         return;
       }
@@ -77,7 +99,9 @@ export default function SignupPage() {
         router.push("/dashboard");
       }
     } catch {
-      toastError("Network Error", "Could not complete registration. Please try again.");
+      const msg = "Could not complete registration. Please try again.";
+      setFormError(msg);
+      toastError("Network Error", msg);
     } finally {
       setIsLoading(false);
     }
@@ -117,6 +141,14 @@ export default function SignupPage() {
             </div>
           </div>
 
+          {/* Inline Error Alert */}
+          {formError && (
+            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+              <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <span className="leading-relaxed">{formError}</span>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {/* Full Name */}
@@ -135,8 +167,11 @@ export default function SignupPage() {
                   required
                   autoComplete="name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Aryan Sharma"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (formError) setFormError("");
+                  }}
+                  placeholder="user name"
                   disabled={isLoading}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
                 />
@@ -158,7 +193,10 @@ export default function SignupPage() {
                   type="text"
                   autoComplete="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (formError) setFormError("");
+                  }}
                   placeholder="aryansharma"
                   disabled={isLoading}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
@@ -182,7 +220,10 @@ export default function SignupPage() {
                   required
                   autoComplete="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (formError) setFormError("");
+                  }}
                   placeholder="user@example.com"
                   disabled={isLoading}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
@@ -202,15 +243,71 @@ export default function SignupPage() {
                 <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   autoComplete="new-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (formError) setFormError("");
+                  }}
                   placeholder="••••••••••••"
                   disabled={isLoading}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
+                  className="w-full pl-9 pr-11 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
                 />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <Eye className="w-5 h-5 text-indigo-400 hover:text-indigo-300" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-slate-400 hover:text-slate-200" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label
+                htmlFor="confirm-password"
+                className="block text-xs font-medium text-slate-300 mb-1.5"
+              >
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  id="confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (formError) setFormError("");
+                  }}
+                  placeholder="••••••••••••"
+                  disabled={isLoading}
+                  className="w-full pl-9 pr-11 py-2 rounded-xl bg-slate-900 border border-slate-700/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition disabled:opacity-60 h-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white transition focus:outline-none"
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                >
+                  {showConfirmPassword ? (
+                    <Eye className="w-5 h-5 text-indigo-400 hover:text-indigo-300" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-slate-400 hover:text-slate-200" />
+                  )}
+                </button>
               </div>
             </div>
 
