@@ -49,8 +49,10 @@ function AdminLoginForm() {
     try {
       const cleanEmail = email.trim().toLowerCase();
       const res = await signIn("credentials", {
+        identifier: cleanEmail,
         email: cleanEmail,
         password,
+        accountType: "ADMIN",
         redirect: false,
       });
 

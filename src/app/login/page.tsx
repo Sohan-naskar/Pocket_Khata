@@ -130,8 +130,10 @@ function LoginForm() {
 
         // 2. Perform NextAuth Credentials Sign-In
         const res = await signIn("credentials", {
+          identifier: cleanAdminId,
           email: cleanAdminId,
           password: adminPassword,
+          accountType: "ADMIN",
           redirect: false,
         });
 
@@ -148,8 +150,10 @@ function LoginForm() {
         const cleanStudentId = studentIdentifier.trim().toLowerCase();
 
         const res = await signIn("credentials", {
+          identifier: cleanStudentId,
           email: cleanStudentId,
           password: studentPassword,
+          accountType: "USER",
           redirect: false,
         });
 

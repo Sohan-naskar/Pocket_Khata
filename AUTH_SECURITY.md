@@ -76,6 +76,8 @@ PocketKhata implements a clean, self-contained authentication architecture utili
 - If credentials belong to an authentic `ADMIN` account:
   - Session established with `role: "ADMIN"`.
   - User redirected to `/admin`.
+- **First-Time Cloud Bootstrap Auto-Provisioning**:
+  - In cloud/serverless environments (e.g. Vercel + Cloud PostgreSQL), if `prisma.user.count({ where: { role: "ADMIN" } }) === 0` and an authorized administrator attempts first login (`admin@pocketkhata.app` or `admin`) with a valid bootstrap password (`process.env.ADMIN_PASSWORD`, `"admin123"`, `"admin"`), the system securely bootstraps the Admin account on the fly with a fresh bcrypt password hash and wallet profile, establishing the initial administrative session without requiring manual database shell access.
 
 ### 2.3 Registration Policy (`/signup`)
 - Public registration creates **Personal Accounts** strictly with `role: "USER"`.
