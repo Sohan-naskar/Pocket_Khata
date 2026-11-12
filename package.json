@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
-    "build": "prisma generate && prisma db push --accept-data-loss && next build",
+    "dev": "node scripts/prepare-db.js && prisma generate && next dev -H 0.0.0.0",
+    "build": "node scripts/prepare-db.js && prisma generate && prisma db push --accept-data-loss && next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
-    "db:push": "prisma db push",
+    "db:push": "node scripts/prepare-db.js && prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/prepare-db.js && prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.21.1",
