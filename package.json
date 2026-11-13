@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/prepare-db.js && prisma generate && next dev -H 0.0.0.0",
-    "build": "node scripts/prepare-db.js && prisma generate && prisma db push --accept-data-loss --skip-generate && next build",
+    "build": "node scripts/prepare-db.js && prisma generate && prisma db push --accept-data-loss && next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
     "db:push": "node scripts/prepare-db.js && prisma db push",

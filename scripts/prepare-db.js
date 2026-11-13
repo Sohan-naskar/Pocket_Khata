@@ -3,46 +3,57 @@ const path = require("path");
 
 const schemaPath = path.join(__dirname, "..", "prisma", "schema.prisma");
 let resolvedUrl = process.env.DATABASE_URL || "";
-let resolvedDirectUrl = process.env.DIRECT_URL || "";
 
-if (!resolvedUrl || !resolvedDirectUrl) {
+if (!resolvedUrl) {
   const envPath = path.join(__dirname, "..", ".env");
   if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, "utf8");
-    if (!resolvedUrl) {
-      const matchUrl = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)/);
-      if (matchUrl) resolvedUrl = matchUrl[1];
-    }
-    if (!resolvedDirectUrl) {
-      const matchDirect = envContent.match(/DIRECT_URL=["']?([^"'\r\n]+)/);
-      if (matchDirect) resolvedDirectUrl = matchDirect[1];
+    const match = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)/);
+    if (match) {
+      resolvedUrl = match[1];
     }
   }
 }
 
-const isPostgres = resolvedUrl.startsWith("postgres");
-let newDatasourceBlock = "";
-
-if (isPostgres) {
-  if (resolvedDirectUrl) {
-    newDatasourceBlock = `datasource db {\n  provider  = "postgresql"\n  url       = env("DATABASE_URL")\n  directUrl = env("DIRECT_URL")\n}`;
-  } else {
-    newDatasourceBlock = `datasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL")\n}`;
-  }
-} else {
-  newDatasourceBlock = `datasource db {\n  provider = "sqlite"\n  url      = env("DATABASE_URL")\n}`;
-}
+const targetProvider = resolvedUrl.startsWith("postgres") ? "postgresql" : "sqlite";
 
 if (fs.existsSync(schemaPath)) {
   let schema = fs.readFileSync(schemaPath, "utf8");
-  const datasourceRegex = /datasource db\s*\{[\s\S]*?\}/;
-  const currentDatasource = schema.match(datasourceRegex)?.[0] || "";
+  let modified = false;
 
-  if (currentDatasource.trim() !== newDatasourceBlock.trim()) {
-    schema = schema.replace(datasourceRegex, newDatasourceBlock);
-    fs.writeFileSync(schemaPath, schema, "utf8");
-    console.log(`[PocketKhata DB] Updated schema.prisma datasource block for ${isPostgres ? "PostgreSQL" : "SQLite"}.`);
+  const currentProvider = schema.includes('provider = "postgresql"') ? "postgresql" : "sqlite";
+
+  if (currentProvider !== targetProvider) {
+    schema = schema.replace(
+      /provider\s*=\s*"(postgresql|sqlite)"/,
+      `provider = "${targetProvider}"`
+    );
+    modified = true;
+    console.log(`[PocketKhata DB] Adjusted schema.prisma provider to '${targetProvider}' to match DATABASE_URL.`);
+  }
+
+  if (targetProvider === "postgresql") {
+    if (!schema.includes("directUrl")) {
+      schema = schema.replace(
+        /url\s*=\s*env\("DATABASE_URL"\)/,
+        'url       = env("DATABASE_URL")\n  directUrl = env("DIRECT_URL")'
+      );
+      modified = true;
+      console.log(`[PocketKhata DB] Added directUrl to schema.prisma for PostgreSQL pooling.`);
+    }
   } else {
-    console.log(`[PocketKhata DB] schema.prisma datasource already up-to-date.`);
+    if (schema.includes("directUrl")) {
+      schema = schema.replace(/\r?\n\s*directUrl\s*=\s*env\("DIRECT_URL"\)/, "");
+      modified = true;
+      console.log(`[PocketKhata DB] Removed directUrl for SQLite compatibility.`);
+    }
+  }
+
+  if (modified) {
+    fs.writeFileSync(schemaPath, schema, "utf8");
+  } else {
+    console.log(`[PocketKhata DB] schema.prisma already properly configured for '${targetProvider}'.`);
   }
 }
+
+
