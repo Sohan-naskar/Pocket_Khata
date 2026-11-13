@@ -42,10 +42,18 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(cleanPassword, 10);
+    const updateData: { passwordHash: string; username?: string } = { passwordHash };
+
+    if (!targetUser.username) {
+      const derivedUsername = targetUser.name?.trim()
+        ? targetUser.name.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "_")
+        : targetUser.email.split("@")[0].replace(/[^a-z0-9_.-]/g, "");
+      updateData.username = derivedUsername;
+    }
 
     await prisma.user.update({
       where: { id: userId },
-      data: { passwordHash },
+      data: updateData,
     });
 
     // Clean up any pending password reset requests for this email

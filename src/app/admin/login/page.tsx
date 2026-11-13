@@ -47,9 +47,10 @@ function AdminLoginForm() {
     setErrorMsg("");
 
     try {
-      const cleanEmail = email.trim().toLowerCase();
+      const trimmedInput = email.trim();
+      const cleanEmail = trimmedInput.toLowerCase();
       const res = await signIn("credentials", {
-        identifier: cleanEmail,
+        identifier: trimmedInput,
         email: cleanEmail,
         password,
         accountType: "ADMIN",

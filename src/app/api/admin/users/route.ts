@@ -38,11 +38,17 @@ export async function POST(req: Request) {
     if (existingUser) {
       if (existingUser.role !== "ADMIN") {
         const passwordHash = await bcrypt.hash(password, 10);
+        const derivedUsername =
+          existingUser.username ||
+          (name?.trim()
+            ? name.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "_")
+            : cleanEmail.split("@")[0].replace(/[^a-z0-9_.-]/g, ""));
         const updated = await prisma.user.update({
           where: { id: existingUser.id },
           data: {
             role: "ADMIN",
             name: name?.trim() || existingUser.name,
+            username: derivedUsername,
             passwordHash,
           },
           select: {
@@ -69,10 +75,14 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const cleanUsername = name?.trim()
+      ? name.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "_")
+      : cleanEmail.split("@")[0].replace(/[^a-z0-9_.-]/g, "");
 
     const newAdmin = await prisma.user.create({
       data: {
         name: name?.trim() || cleanEmail.split("@")[0],
+        username: cleanUsername,
         email: cleanEmail,
         passwordHash,
         role: "ADMIN",

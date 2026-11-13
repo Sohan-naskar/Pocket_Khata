@@ -107,20 +107,21 @@ function LoginForm() {
 
     try {
       if (accountType === "ADMIN") {
-        const cleanAdminId = adminIdentifier.trim().toLowerCase();
+        const trimmedAdminId = adminIdentifier.trim();
+        const cleanAdminId = trimmedAdminId.toLowerCase();
 
         // 1. Pre-verify if account exists and whether it has permission to log in as ADMIN
         const verifyRes = await fetch("/api/auth/verify-account", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: cleanAdminId }),
+          body: JSON.stringify({ identifier: trimmedAdminId }),
         }).catch(() => null);
 
         if (verifyRes && verifyRes.ok) {
           const verifyData = await verifyRes.json();
           if (verifyData.exists && verifyData.role && verifyData.role !== "ADMIN") {
             setUnauthorizedAccountInfo({
-              email: cleanAdminId,
+              email: trimmedAdminId,
               role: `${verifyData.role} (Student Account)`,
             });
             setIsLoading(false);
@@ -130,7 +131,7 @@ function LoginForm() {
 
         // 2. Perform NextAuth Credentials Sign-In
         const res = await signIn("credentials", {
-          identifier: cleanAdminId,
+          identifier: trimmedAdminId,
           email: cleanAdminId,
           password: adminPassword,
           accountType: "ADMIN",

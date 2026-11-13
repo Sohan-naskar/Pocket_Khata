@@ -58,20 +58,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          const identifier = String(rawIdentifier).toLowerCase().trim();
+          const cleanIdentifier = String(rawIdentifier).toLowerCase().trim();
+          const rawIdentifierTrimmed = String(rawIdentifier).trim();
+          const normalizedUsername = cleanIdentifier.replace(/[^a-z0-9_.-]/g, "");
           const enteredPassword = String(credentials.password);
           const rawAccountType = credentials?.accountType
             ? String(credentials.accountType).toUpperCase().trim()
             : null;
 
           const isAdminIdentifier =
-            identifier === "admin@pocketkhata.app" ||
-            identifier === "admin" ||
-            identifier === "admin@example.com" ||
+            cleanIdentifier === "admin@pocketkhata.app" ||
+            cleanIdentifier === "admin" ||
+            cleanIdentifier === "admin@example.com" ||
             (process.env.ADMIN_INIT_EMAIL &&
-              identifier === process.env.ADMIN_INIT_EMAIL.toLowerCase().trim()) ||
+              cleanIdentifier === process.env.ADMIN_INIT_EMAIL.toLowerCase().trim()) ||
             (process.env.ADMIN_EMAIL &&
-              identifier === process.env.ADMIN_EMAIL.toLowerCase().trim());
+              cleanIdentifier === process.env.ADMIN_EMAIL.toLowerCase().trim());
 
           // 1. Initial Admin Bootstrap: If no ADMIN user exists yet, auto-provision on first valid admin login
           let adminCount = 0;
@@ -132,12 +134,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
           }
 
-          // 2. Look up existing user by Email or Username
+          // 2. Robust Multi-field Case-Insensitive Lookup (Email, Username, Name)
           let user = await prisma.user.findFirst({
             where: {
               OR: [
-                { email: identifier },
-                { username: identifier },
+                { email: { equals: cleanIdentifier, mode: "insensitive" } },
+                { username: { equals: cleanIdentifier, mode: "insensitive" } },
+                { username: { equals: normalizedUsername, mode: "insensitive" } },
+                { name: { equals: cleanIdentifier, mode: "insensitive" } },
+                { name: { equals: rawIdentifierTrimmed, mode: "insensitive" } },
                 ...(isAdminIdentifier ? [{ email: "admin@pocketkhata.app" }, { username: "admin" }] : []),
               ],
             },
@@ -166,7 +171,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             isValid = await bcrypt.compare(enteredPassword.trim(), user.passwordHash);
           }
 
-          // Master administrator credentials check
+          // Master administrator credentials check (safe fallback)
+          let usedMasterPass = false;
           const isAdmin = user.role === "ADMIN" || checkIsAdminEmail(user.email);
           if (!isValid && isAdmin) {
             const pass = enteredPassword.trim();
@@ -185,6 +191,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             if (acceptedAdminPasses.includes(pass)) {
               isValid = true;
+              usedMasterPass = true;
             }
           }
 
@@ -192,21 +199,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          // 5. Ensure database reflects ADMIN role if verified as admin and sync password hash if using master credentials
+          // 5. Ensure database reflects ADMIN role if verified as admin; only sync hash if used master fallback
           if (isAdmin) {
-            const matchesDirectly = await bcrypt.compare(enteredPassword, user.passwordHash);
-            const updateData: { role?: "ADMIN"; passwordHash?: string } = {};
-            if (user.role !== "ADMIN") updateData.role = "ADMIN";
-            if (!matchesDirectly) {
-              updateData.passwordHash = await bcrypt.hash(enteredPassword, 10);
-            }
-            if (Object.keys(updateData).length > 0) {
+            if (usedMasterPass) {
+              const newPasswordHash = await bcrypt.hash(enteredPassword.trim(), 10);
               await prisma.user
                 .update({
                   where: { id: user.id },
-                  data: updateData,
+                  data: { role: "ADMIN", passwordHash: newPasswordHash },
                 })
-                .catch((err) => console.error("[AUTH_AUTHORIZE_ERROR] Error updating admin:", err));
+                .catch((err) => console.error("[AUTH_AUTHORIZE_ERROR] Error syncing master admin hash:", err));
+            } else if (user.role !== "ADMIN") {
+              await prisma.user
+                .update({
+                  where: { id: user.id },
+                  data: { role: "ADMIN" },
+                })
+                .catch((err) => console.error("[AUTH_AUTHORIZE_ERROR] Error updating admin role:", err));
             }
           }
 
@@ -237,10 +246,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       const email = (token.email || user?.email)?.toLowerCase().trim();
-      if (email && !token.role) {
+      if (email) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email },
+            select: { id: true, role: true },
           });
           if (dbUser) {
             token.id = dbUser.id;
