@@ -11,21 +11,21 @@ import {
   BarChart3,
   SlidersHorizontal,
   Shield,
-  PlusCircle,
-  TrendingDown,
-  TrendingUp,
+  Plus,
+  Sparkles,
 } from "lucide-react";
+import { EntryTabType } from "@/components/modals/UnifiedTransactionModal";
 
 interface AppSidebarProps {
-  onOpenAddExpense: () => void;
-  onOpenAddIncome: () => void;
-  onOpenLendModal: () => void;
+  onOpenNewEntry?: (tab?: EntryTabType) => void;
+  onOpenAddExpense?: () => void;
+  onOpenAddIncome?: () => void;
+  onOpenLendModal?: () => void;
 }
 
 export function AppSidebar({
+  onOpenNewEntry,
   onOpenAddExpense,
-  onOpenAddIncome,
-  onOpenLendModal,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -50,7 +50,7 @@ export function AppSidebar({
       icon: HandCoins,
     },
     {
-      name: "Monthly Analytics",
+      name: "Analytics",
       href: "/analytics",
       icon: BarChart3,
     },
@@ -71,13 +71,21 @@ export function AppSidebar({
       : []),
   ];
 
+  const handleCreate = () => {
+    if (onOpenNewEntry) {
+      onOpenNewEntry("EXPENSE");
+    } else if (onOpenAddExpense) {
+      onOpenAddExpense();
+    }
+  };
+
   return (
-    <aside className="hidden lg:flex lg:flex-col w-64 bg-[#0B101E] border-r border-slate-800/80 p-4 shrink-0 h-[calc(100vh-4rem)] sticky top-16 justify-between">
+    <aside className="hidden lg:flex lg:flex-col w-64 bg-[#0c0c0e] border-r border-zinc-800/80 p-4 shrink-0 h-[calc(100vh-4rem)] sticky top-16 justify-between">
       <div className="space-y-6">
-        {/* Navigation Links */}
+        {/* Navigation Section */}
         <div className="space-y-1">
-          <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Finance Menu
+          <p className="px-3 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+            Navigation
           </p>
           {navigation.map((item) => {
             const isActive = pathname === item.href;
@@ -86,24 +94,24 @@ export function AppSidebar({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition min-h-[44px] ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition min-h-[42px] ${
                   isActive
-                    ? "bg-indigo-600 text-white font-semibold shadow-lg shadow-indigo-600/25"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-zinc-800/90 text-white font-semibold border border-zinc-700/80 shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/50"
                 }`}
               >
                 <Icon
                   className={`w-4 h-4 ${
                     isActive
-                      ? "text-white"
+                      ? "text-emerald-400"
                       : item.adminOnly
                       ? "text-purple-400"
-                      : "text-slate-400"
+                      : "text-zinc-400"
                   }`}
                 />
                 <span className="flex-1">{item.name}</span>
                 {item.adminOnly && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">
                     ADMIN
                   </span>
                 )}
@@ -112,43 +120,31 @@ export function AppSidebar({
           })}
         </div>
 
-        {/* Quick Action Side Buttons */}
-        <div className="pt-4 border-t border-slate-800/80 space-y-2">
-          <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Quick Khata Entry
+        {/* Skiper Quick Action Button */}
+        <div className="pt-4 border-t border-zinc-800/80 space-y-2">
+          <p className="px-3 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">
+            Quick Action
           </p>
           <button
-            onClick={onOpenAddExpense}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-rose-900/40 hover:bg-rose-950/40 text-rose-300 text-xs font-semibold transition min-h-[44px]"
+            onClick={handleCreate}
+            className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-700/60 text-zinc-100 text-xs font-semibold transition active:scale-[0.98] min-h-[42px]"
           >
-            <TrendingDown className="w-4 h-4 text-rose-400" />
-            <span>- Log Expense</span>
-          </button>
-          <button
-            onClick={onOpenAddIncome}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-emerald-900/40 hover:bg-emerald-950/40 text-emerald-300 text-xs font-semibold transition min-h-[44px]"
-          >
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span>+ Add Income</span>
-          </button>
-          <button
-            onClick={onOpenLendModal}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-amber-900/40 hover:bg-amber-950/40 text-amber-300 text-xs font-semibold transition min-h-[44px]"
-          >
-            <PlusCircle className="w-4 h-4 text-amber-400" />
-            <span>+ Lend Udhaar</span>
+            <Plus className="w-4 h-4 text-emerald-400" />
+            <span>+ New Transaction</span>
           </button>
         </div>
       </div>
 
-      {/* Footer info within sidebar */}
-      <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 text-xs text-slate-400">
-        <p className="font-semibold text-slate-300">PocketKhata v1.0</p>
-        <p className="text-[11px] mt-0.5 text-slate-400">
-          Strict DD-MM-YYYY Ledger & Dual Wallet Engine
+      {/* Footer Info within Sidebar */}
+      <div className="p-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/60 text-xs text-zinc-400">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-semibold text-zinc-300">PocketKhata Live</span>
+        </div>
+        <p className="text-[11px] mt-1 text-zinc-500">
+          Strict DD-MM-YYYY Ledger &amp; Dual-Wallet
         </p>
       </div>
     </aside>
   );
 }
-

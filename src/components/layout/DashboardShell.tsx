@@ -5,17 +5,14 @@ import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { MobileDrawer } from "@/components/layout/MobileDrawer";
-import { AppFooter } from "@/components/layout/AppFooter";
-import { AddExpenseModal } from "@/components/modals/AddExpenseModal";
-import { AddIncomeModal } from "@/components/modals/AddIncomeModal";
-import { LendLoanModal } from "@/components/modals/LendLoanModal";
-import { MobileQuickActionsModal } from "@/components/modals/MobileQuickActionsModal";
+import { UnifiedTransactionModal, EntryTabType } from "@/components/modals/UnifiedTransactionModal";
 
-interface DashboardShellProps {
+export interface DashboardShellProps {
   children: (props: {
     onOpenAddExpense: () => void;
     onOpenAddIncome: () => void;
     onOpenLendModal: () => void;
+    onOpenNewEntry: (tab?: EntryTabType) => void;
     refreshKey: number;
     triggerRefresh: () => void;
   }) => React.ReactNode;
@@ -23,90 +20,73 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isExpenseOpen, setIsExpenseOpen] = useState(false);
-  const [isIncomeOpen, setIsIncomeOpen] = useState(false);
-  const [isLendOpen, setIsLendOpen] = useState(false);
-  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
+  const [isUnifiedModalOpen, setIsUnifiedModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState<EntryTabType>("EXPENSE");
   const [refreshKey, setRefreshKey] = useState(0);
 
   const triggerRefresh = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
+  const handleOpenNewEntry = (tab: EntryTabType = "EXPENSE") => {
+    setModalTab(tab);
+    setIsUnifiedModalOpen(true);
+  };
+
   return (
-    <div className="min-h-screen bg-[#090D16] text-[#F9FAFB] flex flex-col overflow-x-hidden">
-      {/* Top Navbar */}
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col overflow-x-hidden selection:bg-zinc-800 selection:text-white">
+      {/* Top Skiper Dynamic Navbar */}
       <AppNavbar
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-        onOpenAddExpense={() => setIsExpenseOpen(true)}
-        onOpenAddIncome={() => setIsIncomeOpen(true)}
-        onOpenLendModal={() => setIsLendOpen(true)}
+        onOpenNewEntry={handleOpenNewEntry}
+        onOpenAddExpense={() => handleOpenNewEntry("EXPENSE")}
+        onOpenAddIncome={() => handleOpenNewEntry("INCOME")}
+        onOpenLendModal={() => handleOpenNewEntry("LEND")}
       />
 
-      {/* Main Body */}
+      {/* Main Body Layout */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
-        {/* Desktop Sidebar */}
+        {/* Desktop Obsidian Sidebar */}
         <AppSidebar
-          onOpenAddExpense={() => setIsExpenseOpen(true)}
-          onOpenAddIncome={() => setIsIncomeOpen(true)}
-          onOpenLendModal={() => setIsLendOpen(true)}
+          onOpenNewEntry={handleOpenNewEntry}
+          onOpenAddExpense={() => handleOpenNewEntry("EXPENSE")}
+          onOpenAddIncome={() => handleOpenNewEntry("INCOME")}
+          onOpenLendModal={() => handleOpenNewEntry("LEND")}
         />
 
-        {/* Content Area */}
+        {/* Content Viewport */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden pb-24 lg:pb-12">
           {children({
-            onOpenAddExpense: () => setIsExpenseOpen(true),
-            onOpenAddIncome: () => setIsIncomeOpen(true),
-            onOpenLendModal: () => setIsLendOpen(true),
+            onOpenAddExpense: () => handleOpenNewEntry("EXPENSE"),
+            onOpenAddIncome: () => handleOpenNewEntry("INCOME"),
+            onOpenLendModal: () => handleOpenNewEntry("LEND"),
+            onOpenNewEntry: handleOpenNewEntry,
             refreshKey,
             triggerRefresh,
           })}
         </main>
       </div>
 
-      {/* Footer */}
-      <AppFooter />
-
-      {/* Mobile Sticky Bottom Nav */}
-      <BottomNav onOpenQuickMenu={() => setIsQuickActionsOpen(true)} />
+      {/* Mobile Floating Action Nav (4 icons + 1 center action) */}
+      <BottomNav onOpenQuickMenu={() => handleOpenNewEntry("EXPENSE")} />
 
       {/* Mobile Slide-Over Drawer */}
       <MobileDrawer
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        onOpenAddExpense={() => setIsExpenseOpen(true)}
-        onOpenAddIncome={() => setIsIncomeOpen(true)}
-        onOpenLendModal={() => setIsLendOpen(true)}
+        onOpenNewEntry={handleOpenNewEntry}
+        onOpenAddExpense={() => handleOpenNewEntry("EXPENSE")}
+        onOpenAddIncome={() => handleOpenNewEntry("INCOME")}
+        onOpenLendModal={() => handleOpenNewEntry("LEND")}
       />
 
-      {/* Mobile Center Quick Action Sheet */}
-      <MobileQuickActionsModal
-        isOpen={isQuickActionsOpen}
-        onClose={() => setIsQuickActionsOpen(false)}
-        onSelectExpense={() => setIsExpenseOpen(true)}
-        onSelectIncome={() => setIsIncomeOpen(true)}
-        onSelectLend={() => setIsLendOpen(true)}
-      />
-
-      {/* Modals */}
-      <AddExpenseModal
-        isOpen={isExpenseOpen}
-        onClose={() => setIsExpenseOpen(false)}
-        onSuccess={() => triggerRefresh()}
-      />
-
-      <AddIncomeModal
-        isOpen={isIncomeOpen}
-        onClose={() => setIsIncomeOpen(false)}
-        onSuccess={() => triggerRefresh()}
-      />
-
-      <LendLoanModal
-        isOpen={isLendOpen}
-        onClose={() => setIsLendOpen(false)}
+      {/* Unified Fast Entry Modal (Replaces 3 redundant separate modals) */}
+      <UnifiedTransactionModal
+        isOpen={isUnifiedModalOpen}
+        onClose={() => setIsUnifiedModalOpen(false)}
+        defaultTab={modalTab}
         onSuccess={() => triggerRefresh()}
       />
     </div>
   );
 }
-

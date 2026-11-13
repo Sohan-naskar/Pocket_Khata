@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --background: #090d16;
-  --foreground: #f9fafb;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #121215;
+  --card-border: #27272a;
+  --accent-mint: #00d632;
 }
 
 * {
@@ -28,6 +31,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Skiper UI micro-borders and glass surfaces */
+.skiper-card {
+  background: #121215;
+  border: 1px solid #27272a;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+}
+
+.skiper-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.skiper-card-hover:hover {
+  border-color: #3f3f46;
+  transform: translateY(-1px);
+}
+
 /* Custom sleek scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -35,16 +53,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1f2937;
+  background: #27272a;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #3f3f46;
 }
 
 /* Minimum touch target utility for mobile tap targets */
@@ -52,4 +70,3 @@ body {
   min-height: 44px;
   min-width: 44px;
 }
-

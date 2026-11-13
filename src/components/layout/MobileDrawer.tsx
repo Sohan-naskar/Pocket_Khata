@@ -14,24 +14,23 @@ import {
   SlidersHorizontal,
   Shield,
   LogOut,
-  Phone,
-  Mail,
-  TrendingDown,
-  TrendingUp,
-  PlusCircle,
+  Plus,
 } from "lucide-react";
+import { EntryTabType } from "@/components/modals/UnifiedTransactionModal";
 
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenAddExpense: () => void;
-  onOpenAddIncome: () => void;
-  onOpenLendModal: () => void;
+  onOpenNewEntry?: (tab?: EntryTabType) => void;
+  onOpenAddExpense?: () => void;
+  onOpenAddIncome?: () => void;
+  onOpenLendModal?: () => void;
 }
 
 export function MobileDrawer({
   isOpen,
   onClose,
+  onOpenNewEntry,
   onOpenAddExpense,
   onOpenAddIncome,
   onOpenLendModal,
@@ -46,7 +45,7 @@ export function MobileDrawer({
 
   const links = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Day-to-Day Ledger", href: "/transactions", icon: ReceiptText },
+    { name: "Day Ledger", href: "/transactions", icon: ReceiptText },
     { name: "Udhaar Tracker", href: "/udhaar", icon: HandCoins },
     { name: "Monthly Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Wallet & Profile", href: "/wallet-settings", icon: SlidersHorizontal },
@@ -55,28 +54,41 @@ export function MobileDrawer({
       : []),
   ];
 
+  const handleOpenTab = (tab: EntryTabType) => {
+    onClose();
+    if (onOpenNewEntry) {
+      onOpenNewEntry(tab);
+    } else if (tab === "EXPENSE" && onOpenAddExpense) {
+      onOpenAddExpense();
+    } else if (tab === "INCOME" && onOpenAddIncome) {
+      onOpenAddIncome();
+    } else if (tab === "LEND" && onOpenLendModal) {
+      onOpenLendModal();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 lg:hidden flex">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Drawer */}
-      <div className="relative w-full max-w-xs bg-[#0B101E] border-r border-slate-800 p-6 flex flex-col justify-between h-full z-10 shadow-2xl animate-in slide-in-from-left duration-200">
+      <div className="relative w-full max-w-xs bg-[#09090b] border-r border-zinc-800 p-6 flex flex-col justify-between h-full z-10 shadow-2xl animate-in slide-in-from-left duration-200">
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-                <Wallet className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
+                <Wallet className="w-4 h-4 text-emerald-400" />
               </div>
               <span className="font-bold text-white text-base">PocketKhata</span>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Close navigation"
             >
               <X className="w-5 h-5" />
@@ -84,9 +96,9 @@ export function MobileDrawer({
           </div>
 
           {/* User info */}
-          <div className="py-4 border-b border-slate-800/80">
+          <div className="py-4 border-b border-zinc-800/80">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center font-bold text-indigo-400">
+              <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center font-bold text-zinc-200">
                 {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="min-w-0 flex-1">
@@ -94,14 +106,14 @@ export function MobileDrawer({
                   {session?.user?.name || "PocketKhata User"}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs text-slate-400 truncate">
+                  <span className="text-xs text-zinc-400 truncate">
                     {session?.user?.email}
                   </span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
                       isAdmin
                         ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                        : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        : "bg-zinc-800 text-zinc-300 border border-zinc-700"
                     }`}
                   >
                     {userRole}
@@ -123,11 +135,11 @@ export function MobileDrawer({
                   onClick={onClose}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition min-h-[44px] ${
                     isActive
-                      ? "bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/30"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800"
+                      ? "bg-zinc-850 text-white font-semibold border border-zinc-700/80"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-900"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className={`w-4 h-4 ${isActive ? "text-emerald-400" : "text-zinc-400"}`} />
                   <span>{link.name}</span>
                   {link.adminOnly && (
                     <span className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300">
@@ -139,69 +151,30 @@ export function MobileDrawer({
             })}
           </nav>
 
-          {/* Mobile Quick Action Buttons */}
-          <div className="pt-2 pb-4 space-y-2 border-t border-slate-800/80">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Fast Logging
-            </p>
+          {/* Quick Action */}
+          <div className="pt-2 pb-4 space-y-2 border-t border-zinc-800/80">
             <button
-              onClick={() => {
-                onClose();
-                onOpenAddExpense();
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 border border-rose-900/40 text-rose-300 text-xs font-semibold min-h-[44px]"
+              onClick={() => handleOpenTab("EXPENSE")}
+              className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white text-zinc-950 font-bold text-xs transition active:scale-[0.98] min-h-[44px]"
             >
-              <TrendingDown className="w-4 h-4 text-rose-400" />
-              <span>- Log Expense</span>
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                onOpenAddIncome();
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 border border-emerald-900/40 text-emerald-300 text-xs font-semibold min-h-[44px]"
-            >
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-              <span>+ Add Income</span>
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                onOpenLendModal();
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 border border-amber-900/40 text-amber-300 text-xs font-semibold min-h-[44px]"
-            >
-              <PlusCircle className="w-4 h-4 text-amber-400" />
-              <span>+ Lend Udhaar</span>
+              <Plus className="w-4 h-4 text-zinc-950 stroke-[2.5]" />
+              <span>+ New Entry</span>
             </button>
           </div>
         </div>
 
-        {/* Bottom Drawer Actions */}
-        <div className="pt-4 border-t border-slate-800 space-y-3">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <a
-              href="tel:+918000000000"
-              className="flex items-center gap-1.5 hover:text-indigo-400 transition min-h-[44px]"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              <span>Support</span>
-            </a>
-            <a
-              href="mailto:support@pocketkhata.app"
-              className="flex items-center gap-1.5 hover:text-indigo-400 transition min-h-[44px]"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Email</span>
-            </a>
-          </div>
-
+        {/* Sign Out */}
+        <div className="pt-4 border-t border-zinc-800">
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-rose-600/15 border border-rose-600/30 text-rose-300 text-xs font-semibold hover:bg-rose-600/25 transition min-h-[44px]"
+            onClick={() =>
+              session?.user
+                ? signOut({ callbackUrl: "/login" })
+                : (window.location.href = "/login")
+            }
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-950/30 transition min-h-[44px]"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            <span>Sign Out</span>
           </button>
         </div>
       </div>

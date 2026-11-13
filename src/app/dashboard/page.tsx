@@ -3,19 +3,20 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { WalletCards } from "@/components/dashboard/WalletCards";
+import { SkiperHeroCard } from "@/components/dashboard/SkiperHeroCard";
 import { OverdueAlertBanner } from "@/components/dashboard/OverdueAlertBanner";
 import { MonthlySummaryWidget } from "@/components/dashboard/MonthlySummaryWidget";
 import { RecentTransactionsList } from "@/components/dashboard/RecentTransactionsList";
 import { WalletBalances, TransactionItem, LoanItem } from "@/types";
 import { isOverdue } from "@/lib/date-utils";
-import { TrendingDown, TrendingUp, HandCoins, Sparkles } from "lucide-react";
+import { Sparkles, Plus } from "lucide-react";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
 
   const [balances, setBalances] = useState<WalletBalances | null>(null);
   const [overdueLoans, setOverdueLoans] = useState<LoanItem[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [analytics, setAnalytics] = useState<any>(null);
   const [recentTransactions, setRecentTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,8 +66,8 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell>
-      {({ onOpenAddExpense, onOpenAddIncome, onOpenLendModal, refreshKey }) => {
-        // Trigger fetch whenever refreshKey updates from any modal action
+      {({ onOpenNewEntry, refreshKey }) => {
+        // Trigger fetch whenever refreshKey updates from modal action
         // eslint-disable-next-line react-hooks/rules-of-hooks
         useEffect(() => {
           if (refreshKey > 0) {
@@ -76,44 +77,30 @@ export default function DashboardPage() {
 
         return (
           <div className="space-y-6 max-w-7xl mx-auto">
-            {/* Top Greeting & Action Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/60">
+            {/* Top Minimal Greeting Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-800/80">
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                    Hey, {session?.user?.name || "Hosteller"}!
+                    Hey, {session?.user?.name || "Hosteller"}
                   </h1>
-                  <span className="p-1 rounded-full bg-indigo-500/10 text-indigo-400">
-                    <Sparkles className="w-4 h-4" />
+                  <span className="p-1 rounded-full bg-zinc-800 text-emerald-400 border border-zinc-700">
+                    <Sparkles className="w-3.5 h-3.5" />
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                  Here is your live Online vs Cash balance and daily Khata summary.
+                <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
+                  Real-time liquidity, daily ledger, and peer Udhaar khata.
                 </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 flex-wrap">
+              {/* Header Action Button */}
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={onOpenAddExpense}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-md shadow-rose-600/20 transition min-h-[44px]"
+                  onClick={() => onOpenNewEntry("EXPENSE")}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-bold transition shadow-sm active:scale-[0.98] min-h-[40px]"
                 >
-                  <TrendingDown className="w-4 h-4" />
-                  <span>- Log Expense</span>
-                </button>
-                <button
-                  onClick={onOpenAddIncome}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition min-h-[44px]"
-                >
-                  <TrendingUp className="w-4 h-4" />
-                  <span>+ Add Money</span>
-                </button>
-                <button
-                  onClick={onOpenLendModal}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-md shadow-amber-600/20 transition min-h-[44px]"
-                >
-                  <HandCoins className="w-4 h-4" />
-                  <span>+ Lend Udhaar</span>
+                  <Plus className="w-4 h-4 text-zinc-950 stroke-[2.5]" />
+                  <span>New Transaction</span>
                 </button>
               </div>
             </div>
@@ -124,11 +111,12 @@ export default function DashboardPage() {
               onLoanCollected={() => fetchDashboardData()}
             />
 
-            {/* Dual Wallet Live Summary Cards (Total, Online, Cash) */}
-            <WalletCards
+            {/* Skiper Hero Balance Card (High contrast total balance + dual wallet pills) */}
+            <SkiperHeroCard
               balances={balances}
               isLoading={isLoading}
               onBalanceUpdated={() => fetchDashboardData()}
+              onOpenNewEntry={(tab) => onOpenNewEntry(tab || "EXPENSE")}
             />
 
             {/* Split Grid: Monthly Analytics Widget & Recent Ledger */}
@@ -153,4 +141,3 @@ export default function DashboardPage() {
     </DashboardShell>
   );
 }
-
