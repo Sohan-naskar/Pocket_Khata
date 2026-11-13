@@ -109,7 +109,7 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: Promote or Demote an existing user's role (Admin session required)
+// PATCH: Promote/Demote user role OR Reset user password (Admin session required)
 export async function PATCH(req: Request) {
   try {
     const session = await auth().catch(() => null);
@@ -118,7 +118,35 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
     }
     const body = await req.json();
-    const { userId, role } = body;
+    const { userId, role, newPassword, action } = body;
+
+    // Handle Password Reset Action
+    if (action === "RESET_PASSWORD" || (userId && newPassword && !role)) {
+      if (!newPassword || String(newPassword).trim().length < 6) {
+        return NextResponse.json(
+          { error: "Password must be at least 6 characters long" },
+          { status: 400 }
+        );
+      }
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      if (!targetUser) {
+        return NextResponse.json({ error: "Target user not found" }, { status: 404 });
+      }
+      const passwordHash = await bcrypt.hash(String(newPassword).trim(), 10);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      });
+      await prisma.passwordResetToken.deleteMany({
+        where: { email: targetUser.email },
+      });
+      return NextResponse.json({
+        message: `Password for ${targetUser.name || targetUser.email} has been successfully reset.`,
+        success: true,
+      });
+    }
 
     if (!userId || !role || (role !== "USER" && role !== "ADMIN")) {
       return NextResponse.json(
