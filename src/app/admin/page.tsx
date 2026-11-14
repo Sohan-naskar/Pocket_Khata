@@ -561,20 +561,20 @@ export default function AdminPage() {
       {() => (
         <div className="space-y-6 max-w-7xl mx-auto">
           {/* Header with Title and '+ Add New Admin' Action Button */}
-          <div className="pb-3 border-b border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="pb-4 border-b border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
-                  <Shield className="w-4 h-4" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm">
+                  <Shield className="w-5 h-5" />
                 </div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   Admin Platform Telemetry
                 </h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-500/15 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30">
                   ADMIN PORTAL
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Real-time platform adoption analytics, user registration activity, and admin team management.
               </p>
             </div>
@@ -582,7 +582,7 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-purple-600/30 transition active:scale-[0.99] self-start sm:self-auto shrink-0"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-purple-600/25 transition active:scale-[0.99] self-start sm:self-auto shrink-0 min-h-[44px]"
             >
               <UserPlus className="w-4 h-4" />
               + Add New Admin
@@ -590,82 +590,82 @@ export default function AdminPage() {
           </div>
 
           {/* Privacy Invariant Banner */}
-          <div className="px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2.5 text-xs text-slate-400">
-            <LockKeyhole className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-white/10 flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-400 shadow-sm">
+            <LockKeyhole className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
             <span>
-              <strong className="text-slate-200">Strict Financial Privacy Enforced:</strong> User wallet balances, money totals, and transaction amounts are private and completely excluded from admin telemetry.
+              <strong className="text-slate-900 dark:text-slate-200">Strict Financial Privacy Enforced:</strong> User wallet balances, money totals, and transaction amounts are private and completely excluded from admin telemetry.
             </span>
           </div>
 
           {/* Top 4 Metric Adoption Hero Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. Total Registered Users */}
-            <div className="p-5 rounded-2xl bg-[#111827] border border-purple-500/30 shadow-xl">
+            <div className="p-5 rounded-3xl bg-white/80 dark:bg-white/[0.04] backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl hover:border-purple-500/30 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
                   Total Registered Users
                 </span>
-                <Users className="w-4 h-4 text-purple-400" />
+                <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-white">
+              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-slate-900 dark:text-white">
                 {isLoading ? "..." : metrics?.totalUsers ?? 0}
               </p>
-              <p className="text-xs text-slate-400 mt-1">Total student & staff accounts</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total student & staff accounts</p>
             </div>
 
             {/* 2. Active Users This Month */}
-            <div className="p-5 rounded-2xl bg-[#111827] border border-emerald-500/30 shadow-xl">
+            <div className="p-5 rounded-3xl bg-white/80 dark:bg-white/[0.04] backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl hover:border-emerald-500/30 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                   Active Users This Month
                 </span>
-                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-emerald-400">
+              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-emerald-600 dark:text-emerald-400">
                 {isLoading ? "..." : metrics?.activeUsersThisMonth ?? 0}
               </p>
-              <p className="text-xs text-slate-400 mt-1">Users active in current month</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Users active in current month</p>
             </div>
 
             {/* 3. New Signups This Month */}
-            <div className="p-5 rounded-2xl bg-[#111827] border border-blue-500/30 shadow-xl">
+            <div className="p-5 rounded-3xl bg-white/80 dark:bg-white/[0.04] backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl hover:border-blue-500/30 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-blue-300 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
                   New Signups This Month
                 </span>
-                <Sparkles className="w-4 h-4 text-blue-400" />
+                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-blue-400">
+              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-blue-600 dark:text-blue-400">
                 {isLoading ? "..." : metrics?.newSignupsThisMonth ?? 0}
               </p>
-              <p className="text-xs text-slate-400 mt-1">Accounts created this month</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Accounts created this month</p>
             </div>
 
             {/* 4. Total Platform Admins */}
-            <div className="p-5 rounded-2xl bg-[#111827] border border-amber-500/30 shadow-xl">
+            <div className="p-5 rounded-3xl bg-white/80 dark:bg-white/[0.04] backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl hover:border-amber-500/30 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-amber-300 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
                   Total Platform Admins
                 </span>
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-amber-400">
+              <p className="text-2xl sm:text-3xl font-financial font-extrabold text-amber-600 dark:text-amber-400">
                 {isLoading ? "..." : metrics?.totalAdmins ?? 0}
               </p>
-              <p className="text-xs text-slate-400 mt-1">Accounts with ADMIN role</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Accounts with ADMIN role</p>
             </div>
           </div>
 
           {/* User Registry Table */}
-          <div className="rounded-2xl bg-[#111827] border border-slate-800 shadow-xl overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="rounded-3xl bg-white/80 dark:bg-white/[0.04] backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xl overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Registered Users Registry</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Registered Users Registry</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   User accounts and registration timestamps formatted in DD-MM-YYYY
                 </p>
               </div>
-              <span className="text-xs font-semibold text-slate-400">
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/[0.04] px-3 py-1 rounded-full border border-slate-200/80 dark:border-white/[0.08]">
                 Total Accounts: {users.length}
               </span>
             </div>
@@ -673,18 +673,18 @@ export default function AdminPage() {
             {isLoading ? (
               <div className="p-6 space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 bg-slate-900 rounded animate-pulse" />
+                  <div key={i} className="h-12 bg-slate-100 dark:bg-slate-900 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : error ? (
-              <div className="p-6 text-center text-rose-400 text-sm">{error}</div>
+              <div className="p-6 text-center text-rose-500 dark:text-rose-400 text-sm">{error}</div>
             ) : (
               <>
                 {/* Desktop View */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-800 bg-slate-900/60 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/80 dark:bg-slate-900/60 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                         <th className="py-3 px-4">User / Account</th>
                         <th className="py-3 px-4">Email</th>
                         <th className="py-3 px-4">Role</th>
@@ -694,48 +694,48 @@ export default function AdminPage() {
                         <th className="py-3 px-4 text-right">Actions & Management</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/80 text-sm">
+                    <tbody className="divide-y divide-slate-200/80 dark:divide-white/[0.05] text-sm">
                       {users.map((u) => {
                         const isSelf = !!currentUserId && u.id === currentUserId;
                         const isUpdating = updatingUserId === u.id;
 
                         return (
-                          <tr key={u.id} className="hover:bg-slate-800/30 transition">
-                            <td className="py-3.5 px-4 font-semibold text-white">
+                          <tr key={u.id} className="hover:bg-indigo-50/40 dark:hover:bg-white/[0.03] transition">
+                            <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
                               {u.name || "Nameless"}
                               {isSelf && (
-                                <span className="ml-2 text-[10px] text-slate-400 font-normal italic">
+                                <span className="ml-2 text-[10px] text-slate-500 dark:text-slate-400 font-normal italic">
                                   (You)
                                 </span>
                               )}
                             </td>
-                            <td className="py-3.5 px-4 text-xs font-mono text-slate-300">
+                            <td className="py-3.5 px-4 text-xs font-mono text-slate-600 dark:text-slate-300">
                               {u.email}
                             </td>
                             <td className="py-3.5 px-4">
                               <span
-                                className={`px-2 py-0.5 rounded text-xs font-bold ${
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
                                   u.role === "ADMIN"
-                                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                                    : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                    ? "bg-purple-500/15 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30"
+                                    : "bg-blue-500/15 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30"
                                 }`}
                               >
                                 {u.role}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 text-xs font-mono text-slate-300">
+                            <td className="py-3.5 px-4 text-xs font-mono text-slate-600 dark:text-slate-300">
                               {formatDateDDMMYYYY(u.createdAt)}
                             </td>
                             <td className="py-3.5 px-4 text-center font-mono text-xs">
                               <div className="flex items-center justify-center gap-1.5">
-                                <span className="font-semibold text-white">
+                                <span className="font-semibold text-slate-900 dark:text-white">
                                   {u.transactionsCount}
                                 </span>
                                 {u.transactionsCount > 0 && !isSelf && (
                                   <button
                                     type="button"
                                     onClick={() => setClearTransactionsModalTarget(u)}
-                                    className="p-1 rounded hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition"
+                                    className="p-1 rounded-lg hover:bg-rose-500/15 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
                                     title={`Clear ${u.transactionsCount} transactions for ${u.name || u.email}`}
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -745,14 +745,14 @@ export default function AdminPage() {
                             </td>
                             <td className="py-3.5 px-4 text-center font-mono text-xs">
                               <div className="flex items-center justify-center gap-1.5">
-                                <span className="font-semibold text-white">
+                                <span className="font-semibold text-slate-900 dark:text-white">
                                   {u.loansCount}
                                 </span>
                                 {u.loansCount > 0 && !isSelf && (
                                   <button
                                     type="button"
                                     onClick={() => setClearLoansModalTarget(u)}
-                                    className="p-1 rounded hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 transition"
+                                    className="p-1 rounded-lg hover:bg-amber-500/15 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition"
                                     title={`Clear ${u.loansCount} loans for ${u.name || u.email}`}
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -768,15 +768,15 @@ export default function AdminPage() {
                                     <button
                                       type="button"
                                       onClick={() => setResetPasswordModalTarget(u)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition active:scale-[0.98]"
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 dark:bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/25 transition active:scale-[0.98]"
                                       title="Change / reset your admin password"
                                     >
-                                      <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                                      <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                       <span>Reset Password</span>
                                     </button>
                                   </div>
                                 ) : isUpdating ? (
-                                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                     Updating...
                                   </span>
@@ -786,10 +786,10 @@ export default function AdminPage() {
                                     <button
                                       type="button"
                                       onClick={() => setResetPasswordModalTarget(u)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition active:scale-[0.98]"
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 dark:bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/25 transition active:scale-[0.98]"
                                       title={`Reset password for ${u.name || u.email}`}
                                     >
-                                      <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                                      <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                       <span>Reset Password</span>
                                     </button>
 
@@ -798,17 +798,17 @@ export default function AdminPage() {
                                       <button
                                         type="button"
                                         onClick={() => handleToggleRole(u, "ADMIN")}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-600/15 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition active:scale-[0.98]"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/15 dark:bg-purple-600/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 hover:bg-purple-500/25 transition active:scale-[0.98]"
                                         title="Promote to System Admin"
                                       >
-                                        <Shield className="w-3.5 h-3.5 text-purple-400" />
+                                        <Shield className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                                         <span>Promote to Admin</span>
                                       </button>
                                     ) : (
                                       <button
                                         type="button"
                                         onClick={() => handleToggleRole(u, "USER")}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700/80 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 hover:bg-rose-500/10 transition active:scale-[0.98]"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-700 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:border-rose-500/30 hover:bg-rose-500/10 transition active:scale-[0.98]"
                                         title="Demote to Standard User"
                                       >
                                         <UserMinus className="w-3.5 h-3.5" />
@@ -820,10 +820,10 @@ export default function AdminPage() {
                                     <button
                                       type="button"
                                       onClick={() => handleOpenUserDataModal(u)}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 transition active:scale-[0.98]"
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-700 dark:text-slate-300 border border-indigo-200 dark:border-slate-700/80 transition active:scale-[0.98]"
                                       title="Inspect & Remove Transactions or Loans"
                                     >
-                                      <FolderEdit className="w-3.5 h-3.5 text-indigo-400" />
+                                      <FolderEdit className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                                       <span>Manage Data</span>
                                     </button>
 
@@ -831,7 +831,7 @@ export default function AdminPage() {
                                     <button
                                       type="button"
                                       onClick={() => setDeleteUserModalTarget(u)}
-                                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition active:scale-[0.98]"
+                                      className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition active:scale-[0.98]"
                                       title={`Permanently delete account for ${u.name || u.email}`}
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -848,7 +848,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Mobile View */}
-                <div className="md:hidden divide-y divide-slate-800 p-2">
+                <div className="md:hidden divide-y divide-slate-200/80 dark:divide-white/[0.05] p-2">
                   {users.map((u) => {
                     const isSelf = !!currentUserId && u.id === currentUserId;
                     const isUpdating = updatingUserId === u.id;
@@ -856,26 +856,26 @@ export default function AdminPage() {
                     return (
                       <div key={u.id} className="p-3.5 space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-white text-sm">
+                          <span className="font-bold text-slate-900 dark:text-white text-sm">
                             {u.name || "Nameless"}
                             {isSelf && (
-                              <span className="ml-1.5 text-[10px] text-slate-400 italic">
+                              <span className="ml-1.5 text-[10px] text-slate-500 dark:text-slate-400 italic">
                                 (You)
                               </span>
                             )}
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${
                               u.role === "ADMIN"
-                                ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                                : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                ? "bg-purple-500/15 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30"
+                                : "bg-blue-500/15 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30"
                             }`}
                           >
                             {u.role}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 font-mono truncate">{u.email}</p>
-                        <div className="flex justify-between items-center text-xs text-slate-400 font-mono">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-mono truncate">{u.email}</p>
+                        <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 font-mono">
                           <span>Joined: {formatDateDDMMYYYY(u.createdAt)}</span>
                           <div className="flex items-center gap-2">
                             <span className="flex items-center gap-1">
@@ -884,7 +884,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   onClick={() => setClearTransactionsModalTarget(u)}
-                                  className="text-rose-400 hover:text-rose-300 p-0.5"
+                                  className="text-rose-500 dark:text-rose-400 hover:text-rose-600 p-0.5"
                                   title="Clear transactions"
                                 >
                                   <Trash2 className="w-3 h-3 inline" />
@@ -898,7 +898,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   onClick={() => setClearLoansModalTarget(u)}
-                                  className="text-amber-400 hover:text-amber-300 p-0.5"
+                                  className="text-amber-600 dark:text-amber-400 hover:text-amber-500 p-0.5"
                                   title="Clear loans"
                                 >
                                   <Trash2 className="w-3 h-3 inline" />
@@ -916,14 +916,14 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => setResetPasswordModalTarget(u)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 dark:bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/25 transition"
                               >
-                                <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                                <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                 <span>Reset Password</span>
                               </button>
                             </div>
                           ) : isUpdating ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               Updating...
                             </span>
@@ -932,9 +932,9 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => setResetPasswordModalTarget(u)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 dark:bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/25 transition"
                               >
-                                <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                                <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                 <span>Reset Password</span>
                               </button>
 
@@ -942,16 +942,16 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleToggleRole(u, "ADMIN")}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-600/15 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/15 dark:bg-purple-600/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 hover:bg-purple-500/25 transition"
                                 >
-                                  <Shield className="w-3.5 h-3.5 text-purple-400" />
+                                  <Shield className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                                   <span>Promote</span>
                                 </button>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => handleToggleRole(u, "USER")}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700/80 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 transition"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-700 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:border-rose-500/30 transition"
                                 >
                                   <UserMinus className="w-3.5 h-3.5" />
                                   <span>Demote</span>
@@ -961,16 +961,16 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenUserDataModal(u)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700/80 transition"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-slate-300 border border-indigo-200 dark:border-slate-700/80 transition"
                               >
-                                <FolderEdit className="w-3.5 h-3.5 text-indigo-400" />
+                                <FolderEdit className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                                 <span>Manage</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => setDeleteUserModalTarget(u)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                                 <span>Remove</span>
@@ -1682,45 +1682,45 @@ export default function AdminPage() {
           {/* 5. Reset User Password Modal */}
           {resetPasswordModalTarget && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-              <div className="w-full max-w-md bg-[#111827] border border-amber-500/30 rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+              <div className="w-full max-w-md bg-white/95 dark:bg-[#111827]/95 backdrop-blur-2xl border border-amber-500/30 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
                 {/* Subtle Amber Top Accent */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600" />
 
                 {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-slate-800">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                    <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400">
                       <KeyRound className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">Reset Account Password</h3>
-                      <p className="text-xs text-slate-400">Set a new direct login password for this account</p>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">Reset Account Password</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Set a new direct login password for this account</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleCloseResetPasswordModal}
-                    className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+                    className="text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 {/* Target Account Summary */}
-                <div className="mt-4 p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                <div className="mt-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                   <div className="min-w-0 pr-2">
-                    <div className="font-semibold text-sm text-white truncate">
+                    <div className="font-semibold text-sm text-slate-900 dark:text-white truncate">
                       {resetPasswordModalTarget.name || "Nameless User"}
                     </div>
-                    <div className="text-xs font-mono text-slate-400 truncate">
+                    <div className="text-xs font-mono text-slate-500 dark:text-slate-400 truncate">
                       {resetPasswordModalTarget.email}
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-0.5 rounded text-xs font-bold shrink-0 ${
+                    className={`px-2.5 py-0.5 rounded-lg text-xs font-bold shrink-0 ${
                       resetPasswordModalTarget.role === "ADMIN"
-                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                        : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        ? "bg-purple-500/15 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30"
+                        : "bg-blue-500/15 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30"
                     }`}
                   >
                     {resetPasswordModalTarget.role}
@@ -1728,11 +1728,11 @@ export default function AdminPage() {
                 </div>
 
                 {/* Password Generator Toolbar */}
-                <div className="mt-4 flex items-center justify-between gap-2 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/80">
+                <div className="mt-4 flex items-center justify-between gap-2 bg-amber-50/50 dark:bg-slate-900/50 p-2.5 rounded-2xl border border-amber-200/60 dark:border-slate-800/80">
                   <button
                     type="button"
                     onClick={generateRandomPassword}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline transition"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Generate Strong Password</span>
@@ -1742,13 +1742,13 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={handleCopyGeneratedPassword}
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-white px-2 py-0.5 rounded bg-slate-800 border border-slate-700 transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition shadow-sm"
                       title="Copy to clipboard"
                     >
                       {copiedResetPassword ? (
                         <>
-                          <Check className="w-3 h-3 text-emerald-400" />
-                          <span className="text-emerald-400">Copied</span>
+                          <Check className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                          <span className="text-emerald-600 dark:text-emerald-400">Copied</span>
                         </>
                       ) : (
                         <>
@@ -1764,11 +1764,11 @@ export default function AdminPage() {
                 <form onSubmit={handleResetPasswordSubmit} className="mt-4 space-y-4">
                   {/* New Password */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                       New Password (min 6 characters)
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <Lock className="w-4 h-4" />
                       </div>
                       <input
@@ -1778,12 +1778,12 @@ export default function AdminPage() {
                         required
                         minLength={6}
                         placeholder="Enter new password"
-                        className="w-full pl-9 pr-10 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
                       />
                       <button
                         type="button"
                         onClick={() => setShowResetPassword(!showResetPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300"
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       >
                         {showResetPassword ? (
                           <EyeOff className="w-4 h-4" />
@@ -1796,11 +1796,11 @@ export default function AdminPage() {
 
                   {/* Confirm New Password */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                       Confirm New Password
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <Lock className="w-4 h-4" />
                       </div>
                       <input
@@ -1810,12 +1810,12 @@ export default function AdminPage() {
                         required
                         minLength={6}
                         placeholder="Confirm new password"
-                        className="w-full pl-9 pr-10 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
                       />
                       <button
                         type="button"
                         onClick={() => setShowResetConfirmPassword(!showResetConfirmPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300"
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       >
                         {showResetConfirmPassword ? (
                           <EyeOff className="w-4 h-4" />
@@ -1827,18 +1827,18 @@ export default function AdminPage() {
                     {resetNewPassword &&
                       resetConfirmPassword &&
                       resetNewPassword.trim() !== resetConfirmPassword.trim() && (
-                        <p className="mt-1 text-xs text-rose-400 font-medium">
+                        <p className="mt-1 text-xs text-rose-500 dark:text-rose-400 font-medium">
                           Passwords do not match.
                         </p>
                       )}
                   </div>
 
-                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">
+                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200/80 dark:border-slate-800">
                     <button
                       type="button"
                       onClick={handleCloseResetPasswordModal}
                       disabled={isResettingPassword}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 border border-slate-700 transition"
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition"
                     >
                       Cancel
                     </button>

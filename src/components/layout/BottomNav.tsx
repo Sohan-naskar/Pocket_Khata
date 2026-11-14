@@ -36,7 +36,7 @@ export function BottomNav({ onOpenQuickMenu }: BottomNavProps) {
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/90 backdrop-blur-xl border-t border-zinc-800/80 px-3 py-1 safe-area-pb">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0B0F19]/80 backdrop-blur-2xl border-t border-white/[0.1] px-3 py-1 safe-area-pb transition-colors duration-200">
       <div className="flex items-center justify-around h-16 max-w-md mx-auto relative">
         {/* Left two items */}
         {navItems.slice(0, 2).map((item) => {
@@ -46,24 +46,24 @@ export function BottomNav({ onOpenQuickMenu }: BottomNavProps) {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition ${
-                isActive ? "text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
+              className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition-colors ${
+                isActive ? "text-cyan-400 font-semibold" : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Icon className={`w-5 h-5 mb-1 ${isActive ? "text-emerald-400" : "text-zinc-500"}`} />
+              <Icon className={`w-5 h-5 mb-1 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
               <span className="text-[10px] tracking-tight">{item.name}</span>
             </Link>
           );
         })}
 
-        {/* Center Floating Quick Action Button (Skiper high contrast) */}
+        {/* Center Floating Quick Action Button (Neo-Fintech Glow) */}
         <div className="relative -top-4">
           <button
             onClick={onOpenQuickMenu}
-            className="w-12 h-12 rounded-2xl bg-white text-zinc-950 shadow-xl shadow-white/10 hover:bg-zinc-200 active:scale-90 transition-all flex items-center justify-center border-2 border-zinc-900"
+            className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-cyan-400 text-white shadow-xl shadow-indigo-500/35 hover:scale-105 active:scale-95 transition-all flex items-center justify-center border border-white/20"
             aria-label="Add Transaction or Loan"
           >
-            <Plus className="w-5 h-5 stroke-[2.5]" />
+            <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>
         </div>
 
@@ -75,11 +75,11 @@ export function BottomNav({ onOpenQuickMenu }: BottomNavProps) {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition ${
-                isActive ? "text-white font-semibold" : "text-zinc-500 hover:text-zinc-300"
+              className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition-colors ${
+                isActive ? "text-cyan-400 font-semibold" : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Icon className={`w-5 h-5 mb-1 ${isActive ? "text-emerald-400" : "text-zinc-500"}`} />
+              <Icon className={`w-5 h-5 mb-1 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
               <span className="text-[10px] tracking-tight">{item.name}</span>
             </Link>
           );

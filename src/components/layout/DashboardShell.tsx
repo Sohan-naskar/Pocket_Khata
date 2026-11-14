@@ -34,8 +34,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col overflow-x-hidden selection:bg-zinc-800 selection:text-white">
-      {/* Top Skiper Dynamic Navbar */}
+    <div className="min-h-screen bg-[#0B0F19] dark:bg-[#0B0F19] text-slate-100 dark:text-slate-100 flex flex-col overflow-x-hidden relative transition-colors duration-300 selection:bg-indigo-500 selection:text-white">
+      {/* Neo-Fintech Ambient Radiant Glows */}
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-indigo-600/15 dark:bg-indigo-600/15 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="fixed top-1/3 -right-40 w-96 h-96 bg-cyan-500/10 dark:bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 left-1/3 w-80 h-80 bg-emerald-500/10 dark:bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none z-0" />
+
+      {/* Top Glass Navbar */}
       <AppNavbar
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
         onOpenNewEntry={handleOpenNewEntry}
@@ -45,8 +50,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
       />
 
       {/* Main Body Layout */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
-        {/* Desktop Obsidian Sidebar */}
+      <div className="flex-1 flex max-w-7xl w-full mx-auto relative z-10">
+        {/* Desktop Frosted Sidebar */}
         <AppSidebar
           onOpenNewEntry={handleOpenNewEntry}
           onOpenAddExpense={() => handleOpenNewEntry("EXPENSE")}
@@ -80,7 +85,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         onOpenLendModal={() => handleOpenNewEntry("LEND")}
       />
 
-      {/* Unified Fast Entry Modal (Single modal replaces multiple redundant separate modals) */}
+      {/* Unified Fast Entry Modal with Neo-Fintech Glass Styling */}
       <UnifiedTransactionModal
         isOpen={isUnifiedModalOpen}
         initialTab={modalTab}

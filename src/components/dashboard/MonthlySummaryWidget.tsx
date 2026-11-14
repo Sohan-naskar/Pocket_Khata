@@ -27,21 +27,21 @@ export function MonthlySummaryWidget({
   const monthStr = analytics?.monthYear || "This Month";
 
   return (
-    <div className="rounded-2xl bg-[#111318] border border-white/[0.08] p-5 sm:p-6 shadow-xl transition-all duration-300 hover:border-white/[0.12]">
+    <div className="rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-white/[0.1] p-5 sm:p-6 shadow-2xl transition-all duration-300 hover:border-cyan-500/30">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <BarChart3 className="w-4 h-4 text-emerald-400" />
+          <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-cyan-300">
+            <BarChart3 className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">Monthly Summary</h3>
-            <p className="text-xs text-zinc-400 font-mono">Period: {monthStr}</p>
+            <p className="text-xs text-slate-400 font-mono">Period: {monthStr}</p>
           </div>
         </div>
 
         <Link
           href="/analytics"
-          className="flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-white transition min-h-[44px] px-2"
+          className="flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition min-h-[44px] px-2"
         >
           <span>Analytics</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -50,14 +50,14 @@ export function MonthlySummaryWidget({
 
       {isLoading ? (
         <div className="space-y-3 py-4">
-          <div className="h-6 bg-zinc-900 rounded-xl animate-pulse" />
-          <div className="h-10 bg-zinc-900 rounded-xl animate-pulse" />
+          <div className="h-6 bg-white/10 rounded-xl animate-pulse" />
+          <div className="h-10 bg-white/10 rounded-xl animate-pulse" />
         </div>
       ) : (
         <div className="space-y-4">
           {/* Spent vs Saved Cards */}
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
+            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-rose-500/20">
               <div className="flex items-center gap-1.5 text-xs text-rose-400 mb-1">
                 <TrendingDown className="w-3.5 h-3.5" />
                 <span className="font-medium text-[11px]">Spent</span>
@@ -67,7 +67,7 @@ export function MonthlySummaryWidget({
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
+            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-emerald-500/20">
               <div className="flex items-center gap-1.5 text-xs text-emerald-400 mb-1">
                 <PiggyBank className="w-3.5 h-3.5" />
                 <span className="font-medium text-[11px]">Saved</span>
@@ -79,20 +79,20 @@ export function MonthlySummaryWidget({
           </div>
 
           {/* Savings Rate Progress Indicator */}
-          <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.06]">
+          <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
             <div className="flex items-center justify-between text-xs mb-2">
-              <span className="text-zinc-400">Monthly Savings Rate</span>
-              <span className="font-mono font-bold text-emerald-400">
+              <span className="text-slate-300">Monthly Savings Target</span>
+              <span className="font-mono font-bold text-cyan-300">
                 {savingsRate}%
               </span>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(Math.max(savingsRate, 0), 100)}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-[10px] text-zinc-500 mt-2">
+            <div className="flex justify-between items-center text-[10px] text-slate-400 mt-2">
               <span>Income: {formatCurrency(income)}</span>
               <span>Target: &ge;20%</span>
             </div>

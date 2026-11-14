@@ -12,7 +12,6 @@ import {
   SlidersHorizontal,
   Shield,
   Plus,
-  TrendingDown,
   TrendingUp,
 } from "lucide-react";
 import { EntryTab } from "@/components/modals/UnifiedTransactionModal";
@@ -87,12 +86,12 @@ export function AppSidebar({
   };
 
   return (
-    <aside className="hidden lg:flex lg:flex-col w-64 bg-[#0c0d12] border-r border-zinc-800/80 p-4 shrink-0 h-[calc(100vh-4rem)] sticky top-16 justify-between">
+    <aside className="hidden lg:flex lg:flex-col w-64 bg-[#0B0F19]/60 dark:bg-[#0B0F19]/60 backdrop-blur-xl border-r border-white/[0.08] dark:border-white/[0.08] p-4 shrink-0 h-[calc(100vh-4rem)] sticky top-16 justify-between transition-colors duration-200">
       <div className="space-y-6">
         {/* Navigation Links */}
         <div className="space-y-1">
-          <p className="px-3 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-mono">
-            Navigation
+          <p className="px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 font-mono">
+            Finance Menu
           </p>
           {navigation.map((item) => {
             const isActive = pathname === item.href;
@@ -101,24 +100,24 @@ export function AppSidebar({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition min-h-[44px] ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 min-h-[44px] ${
                   isActive
-                    ? "bg-white/[0.08] text-white font-semibold border border-white/[0.08] shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/60"
+                    ? "bg-gradient-to-r from-indigo-600/30 to-cyan-500/20 text-white font-semibold border border-indigo-500/40 shadow-lg shadow-indigo-500/10"
+                    : "text-slate-400 hover:text-white hover:bg-white/[0.05]"
                 }`}
               >
                 <Icon
-                  className={`w-4 h-4 ${
+                  className={`w-4 h-4 transition-colors ${
                     isActive
-                      ? "text-emerald-400"
+                      ? "text-cyan-400"
                       : item.adminOnly
                       ? "text-purple-400"
-                      : "text-zinc-400"
+                      : "text-slate-400"
                   }`}
                 />
                 <span className="flex-1">{item.name}</span>
                 {item.adminOnly && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
                     ADMIN
                   </span>
                 )}
@@ -128,20 +127,20 @@ export function AppSidebar({
         </div>
 
         {/* Quick Action Side Trigger */}
-        <div className="pt-4 border-t border-zinc-800/80 space-y-2">
-          <p className="px-3 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-mono">
+        <div className="pt-4 border-t border-white/[0.08] space-y-2">
+          <p className="px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 font-mono">
             Fast Entry
           </p>
           
           <button
             onClick={() => handleAction("EXPENSE")}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-bold transition shadow-md shadow-white/5 active:scale-[0.98] min-h-[42px]"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 active:scale-[0.98] min-h-[42px]"
           >
             <div className="flex items-center gap-2">
-              <Plus className="w-4 h-4 text-zinc-950 stroke-[2.5]" />
+              <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>+ New Entry</span>
             </div>
-            <span className="text-[10px] bg-zinc-200/90 text-zinc-800 px-1.5 py-0.5 rounded font-mono">
+            <span className="text-[10px] bg-black/25 text-white px-1.5 py-0.5 rounded font-mono">
               Modal
             </span>
           </button>
@@ -149,14 +148,14 @@ export function AppSidebar({
           <div className="grid grid-cols-2 gap-1.5 pt-1">
             <button
               onClick={() => handleAction("INCOME")}
-              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/40 text-emerald-400 text-[11px] font-medium transition"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-emerald-400/40 text-emerald-400 text-[11px] font-medium transition"
             >
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>+ Money</span>
+              <span>+ Income</span>
             </button>
             <button
               onClick={() => handleAction("LEND")}
-              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 text-amber-400 text-[11px] font-medium transition"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-amber-400/40 text-amber-400 text-[11px] font-medium transition"
             >
               <HandCoins className="w-3.5 h-3.5" />
               <span>+ Udhaar</span>
@@ -165,11 +164,11 @@ export function AppSidebar({
         </div>
       </div>
 
-        {/* Footer info within sidebar */}
-      <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-xs text-zinc-400">
-        <p className="font-semibold text-zinc-300">PocketKhata v1.0</p>
-        <p className="text-[11px] mt-0.5 text-zinc-500 font-mono">
-          Skiper Minimalist FinTech
+      {/* Footer info within sidebar */}
+      <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs text-slate-400 backdrop-blur-md">
+        <p className="font-semibold text-white">PocketKhata v1.0</p>
+        <p className="text-[11px] mt-0.5 text-slate-400 font-mono">
+          Neo-Fintech Glass UI
         </p>
       </div>
     </aside>

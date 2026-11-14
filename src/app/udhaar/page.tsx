@@ -13,10 +13,10 @@ import {
   CheckCircle2,
   Clock,
   PlusCircle,
-  AlertTriangle,
   History,
   CreditCard,
   Banknote,
+  MessageCircle,
 } from "lucide-react";
 
 export default function UdhaarPage() {
@@ -62,67 +62,67 @@ export default function UdhaarPage() {
         return (
           <div className="space-y-6 max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.08]">
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
                     <HandCoins className="w-4 h-4" />
                   </div>
                   <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
                     Peer Lending (Udhaar) Tracker
                   </h1>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Track money lent to roommates & friends with 1-tap call & email reminders.
+                <p className="text-xs sm:text-sm text-slate-300/80 mt-1">
+                  Track money lent to roommates & friends with 1-tap WhatsApp, call & email reminders.
                 </p>
               </div>
 
               <button
                 onClick={onOpenLendModal}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-md shadow-amber-600/20 transition min-h-[44px]"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] min-h-[44px]"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>+ Lend New Udhaar</span>
               </button>
             </div>
 
-            {/* Summary Cards for Udhaar */}
+            {/* Neo-Fintech Summary Cards for Udhaar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl bg-[#111827] border border-amber-500/30 shadow-lg">
-                <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-wider mb-1">
+              <div className="p-5 sm:p-6 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-amber-500/30 shadow-2xl relative overflow-hidden group">
+                <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-wider mb-1 font-mono">
                   <Clock className="w-4 h-4 text-amber-400" />
                   <span>Total Pending to Collect</span>
                 </div>
-                <p className="text-2xl sm:text-3xl font-financial font-extrabold text-amber-400">
+                <p className="text-3xl font-financial font-extrabold text-amber-400 mt-1">
                   {formatCurrency(totalPendingAmount)}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-300/80 mt-1">
                   Across {pendingLoans.length} active borrower{pendingLoans.length === 1 ? "" : "s"}
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#111827] border border-emerald-500/30 shadow-lg">
-                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1">
+              <div className="p-5 sm:p-6 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border border-emerald-500/30 shadow-2xl relative overflow-hidden group">
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1 font-mono">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <span>Total Recovered / Repaid</span>
                 </div>
-                <p className="text-2xl sm:text-3xl font-financial font-extrabold text-emerald-400">
+                <p className="text-3xl font-financial font-extrabold text-emerald-400 mt-1">
                   {formatCurrency(totalCollectedAmount)}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-300/80 mt-1">
                   Across {collectedLoans.length} collected loan{collectedLoans.length === 1 ? "" : "s"}
                 </p>
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-2">
               <button
                 onClick={() => setActiveTab("PENDING")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition min-h-[44px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition min-h-[44px] ${
                   activeTab === "PENDING"
-                    ? "bg-amber-600/20 border border-amber-500/50 text-amber-300"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    ? "bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10"
+                    : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <Clock className="w-4 h-4" />
@@ -131,10 +131,10 @@ export default function UdhaarPage() {
 
               <button
                 onClick={() => setActiveTab("COLLECTED")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition min-h-[44px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition min-h-[44px] ${
                   activeTab === "COLLECTED"
-                    ? "bg-emerald-600/20 border border-emerald-500/50 text-emerald-300"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-500/10"
+                    : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 <History className="w-4 h-4" />
@@ -146,13 +146,13 @@ export default function UdhaarPage() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-28 bg-[#111827] rounded-2xl animate-pulse" />
+                  <div key={i} className="h-28 bg-white/5 rounded-3xl animate-pulse" />
                 ))}
               </div>
             ) : activeTab === "PENDING" ? (
               pendingLoans.length === 0 ? (
-                <div className="text-center py-16 px-4 bg-[#111827] rounded-2xl border border-slate-800">
-                  <HandCoins className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <div className="text-center py-16 px-4 bg-white/[0.04] backdrop-blur-2xl rounded-3xl border border-white/[0.1]">
+                  <HandCoins className="w-12 h-12 text-slate-500 mx-auto mb-3" />
                   <p className="text-base font-semibold text-white">No pending Udhaar!</p>
                   <p className="text-xs text-slate-400 mt-1">
                     Nobody owes you money right now. Tap &ldquo;+ Lend New Udhaar&rdquo; to record a loan.
@@ -171,14 +171,20 @@ export default function UdhaarPage() {
                           dueDate: formatDateDDMMYYYY(loan.dueDate),
                         })
                       : null;
+                    const cleanPhone = loan.borrowerPhone.replace(/\D/g, "");
+                    const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+                    const waText = encodeURIComponent(
+                      `Hi ${loan.borrowerName}, friendly reminder regarding the ₹${loan.amount} lent on ${formatDateDDMMYYYY(loan.lentDate)} for ${loan.notes || "expenses"}, which was due on ${formatDateDDMMYYYY(loan.dueDate)}. Let me know when you can settle it! - Sent via PocketKhata`
+                    );
+                    const waHref = `https://wa.me/${waPhone}?text=${waText}`;
 
                     return (
                       <div
                         key={loan.id}
-                        className={`p-4 sm:p-5 rounded-2xl bg-[#111827] border transition flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                        className={`p-5 rounded-3xl bg-white/[0.04] backdrop-blur-2xl border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                           status.isOverdue
-                            ? "border-amber-500/60 shadow-lg shadow-amber-950/30"
-                            : "border-slate-800 hover:border-slate-700"
+                            ? "border-amber-500/50 shadow-xl shadow-amber-950/20"
+                            : "border-white/[0.08] hover:border-white/[0.15]"
                         }`}
                       >
                         {/* Left Details */}
@@ -190,17 +196,17 @@ export default function UdhaarPage() {
                             <span
                               className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                                 status.isOverdue
-                                  ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                                   : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
                               }`}
                             >
                               {status.label}
                             </span>
                             <span
-                              className={`px-1.5 py-0.2 rounded text-[10px] font-bold flex items-center gap-1 ${
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${
                                 loan.wallet === "ONLINE"
-                                  ? "bg-blue-500/15 text-blue-300 border border-blue-500/30"
-                                  : "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                                  ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                               }`}
                             >
                               {loan.wallet === "ONLINE" ? (
@@ -215,7 +221,7 @@ export default function UdhaarPage() {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-4 text-xs text-slate-400 font-mono flex-wrap">
+                          <div className="flex items-center gap-4 text-xs text-slate-300 font-mono flex-wrap">
                             <span>Lent: {formatDateDDMMYYYY(loan.lentDate)}</span>
                             <span>Due: {formatDateDDMMYYYY(loan.dueDate)}</span>
                             <span>Phone: {loan.borrowerPhone}</span>
@@ -223,20 +229,32 @@ export default function UdhaarPage() {
                           </div>
 
                           {loan.notes && (
-                            <p className="text-xs text-slate-300 italic">
+                            <p className="text-xs text-slate-300/90 italic">
                               &ldquo;{loan.notes}&rdquo;
                             </p>
                           )}
                         </div>
 
                         {/* Right: Amount & 1-tap Actions */}
-                        <div className="flex items-center justify-between md:justify-end gap-2.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                        <div className="flex items-center justify-between md:justify-end gap-2.5 pt-3 md:pt-0 border-t md:border-t-0 border-white/[0.08]">
                           <div className="text-left md:text-right mr-2">
                             <p className="text-xs text-slate-400">Amount Due</p>
                             <p className="text-xl font-financial font-extrabold text-amber-400">
                               {formatCurrency(loan.amount)}
                             </p>
                           </div>
+
+                          {/* 1-Tap WhatsApp Link */}
+                          <a
+                            href={waHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition min-h-[44px] min-w-[44px] justify-center"
+                            title="Remind on WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                          </a>
 
                           {/* 1-Tap Call Link */}
                           <a
@@ -277,8 +295,8 @@ export default function UdhaarPage() {
             ) : (
               // Collected Loans Tab
               collectedLoans.length === 0 ? (
-                <div className="text-center py-16 px-4 bg-[#111827] rounded-2xl border border-slate-800">
-                  <History className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <div className="text-center py-16 px-4 bg-white/[0.04] backdrop-blur-2xl rounded-3xl border border-white/[0.1]">
+                  <History className="w-12 h-12 text-slate-500 mx-auto mb-3" />
                   <p className="text-base font-semibold text-white">No collected loans yet.</p>
                   <p className="text-xs text-slate-400 mt-1">
                     When friends return borrowed money, tap &ldquo;Collected&rdquo; on an active loan!
@@ -289,7 +307,7 @@ export default function UdhaarPage() {
                   {collectedLoans.map((loan) => (
                     <div
                       key={loan.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-[#111827] border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-90"
+                      className="p-5 rounded-3xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-90"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -301,7 +319,7 @@ export default function UdhaarPage() {
                             Collected
                           </span>
                         </div>
-                        <div className="text-xs text-slate-400 font-mono flex items-center gap-3 flex-wrap">
+                        <div className="text-xs text-slate-300 font-mono flex items-center gap-3 flex-wrap">
                           <span>Lent: {formatDateDDMMYYYY(loan.lentDate)}</span>
                           <span>
                             Collected on:{" "}
@@ -343,4 +361,3 @@ export default function UdhaarPage() {
     </DashboardShell>
   );
 }
-

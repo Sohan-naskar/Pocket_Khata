@@ -191,10 +191,10 @@ export function UnifiedTransactionModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-lg animate-in fade-in duration-200"
     >
       <div
-        className="w-full max-w-lg bg-[#111318] border border-white/[0.08] rounded-2xl shadow-2xl p-5 sm:p-6 relative overflow-hidden text-zinc-100 max-h-[92vh] flex flex-col custom-scroll"
+        className="w-full max-w-lg bg-[#0B0F19]/95 backdrop-blur-2xl border border-white/[0.12] rounded-3xl shadow-2xl p-5 sm:p-6 relative overflow-hidden text-slate-100 max-h-[92vh] flex flex-col custom-scroll"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Accent Line */}

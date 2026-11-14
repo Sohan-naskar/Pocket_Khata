@@ -7,6 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Wallet, Menu, Shield, User, LogOut, Calendar, Plus } from "lucide-react";
 import { formatDateDDMMYYYY } from "@/lib/date-utils";
 import { EntryTab } from "@/components/modals/UnifiedTransactionModal";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface AppNavbarProps {
   onOpenMobileMenu: () => void;
@@ -37,13 +38,13 @@ export function AppNavbar({
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#09090b]/85 backdrop-blur-xl border-b border-zinc-800/80">
+    <header className="sticky top-0 z-30 w-full bg-[#0B0F19]/75 dark:bg-[#0B0F19]/75 backdrop-blur-xl border-b border-white/[0.08] dark:border-white/[0.08] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand & Mobile Hamburger */}
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/80 border border-transparent hover:border-zinc-750 min-h-[44px] min-w-[44px] flex items-center justify-center transition"
+            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white dark:hover:text-white hover:bg-white/10 dark:hover:bg-white/10 border border-transparent hover:border-white/10 min-h-[44px] min-w-[44px] flex items-center justify-center transition"
             aria-label="Open Navigation Menu"
           >
             <Menu className="w-5 h-5" />
@@ -53,14 +54,14 @@ export function AppNavbar({
             href="/dashboard"
             className="flex items-center gap-2.5 group transition"
           >
-            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shadow-md group-hover:border-zinc-700 transition">
-              <Wallet className="w-4 h-4 text-emerald-400" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
+              <Wallet className="w-4 h-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                Pocket<span className="text-zinc-400">Khata</span>
+              <span className="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-1">
+                Pocket<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Khata</span>
                 {(userRole === "ADMIN" || isOnAdmin) && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20 flex items-center gap-1">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
                     <Shield className="w-2.5 h-2.5" />
                     ADMIN
                   </span>
@@ -70,36 +71,39 @@ export function AppNavbar({
           </Link>
         </div>
 
-        {/* Date Indicator in strict DD-MM-YYYY (Skiper minimal badge) */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-mono text-zinc-300">
-          <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+        {/* Date Indicator in strict DD-MM-YYYY (Glass badge) */}
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-slate-300 backdrop-blur-md">
+          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
           <span>{todayStr}</span>
         </div>
 
-        {/* Header Action & User Profile Pill */}
+        {/* Right Actions: Theme Toggle, + New Entry, and User Avatar */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Single High-Contrast Skiper Action Button (Replacing duplicated 3 buttons) */}
+          {/* Theme Toggle (Light / Dark) */}
+          <ThemeToggle />
+
+          {/* Neo-Fintech Glass Action Button */}
           <button
             onClick={handleAction}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-bold shadow-sm shadow-white/5 transition active:scale-[0.98] min-h-[40px]"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white text-xs font-bold shadow-lg shadow-indigo-500/25 transition-all duration-200 active:scale-[0.98] min-h-[40px]"
           >
-            <Plus className="w-4 h-4 text-zinc-950 stroke-[2.5]" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span className="hidden sm:inline">New Entry</span>
             <span className="sm:hidden">Entry</span>
           </button>
 
-          {/* User profile dropdown button */}
-          <div className="flex items-center gap-1.5 pl-2 border-l border-zinc-800">
+          {/* User Profile Pill */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-white/[0.08]">
             <Link
               href={isOnAdmin ? "/admin" : "/wallet-settings"}
-              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-zinc-850 transition min-h-[44px]"
+              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/[0.06] transition min-h-[44px]"
               title={isOnAdmin ? (session?.user?.name || "Admin Portal") : "Wallet & Profile Settings"}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold ${
                   isOnAdmin
                     ? "bg-purple-500/20 border border-purple-500/40 text-purple-300"
-                    : "bg-zinc-900 border border-zinc-800 text-zinc-200"
+                    : "bg-white/[0.08] border border-white/[0.12] text-white shadow-sm"
                 }`}
               >
                 {session?.user?.name ? (
@@ -110,7 +114,7 @@ export function AppNavbar({
                   <User className="w-3.5 h-3.5" />
                 )}
               </div>
-              <span className="hidden xl:inline text-xs font-medium text-zinc-300 max-w-[120px] truncate">
+              <span className="hidden xl:inline text-xs font-medium text-slate-200 max-w-[120px] truncate">
                 {isOnAdmin ? session?.user?.name || "Admin" : session?.user?.name || "User"}
               </span>
             </Link>
@@ -121,7 +125,7 @@ export function AppNavbar({
                   ? signOut({ callbackUrl: "/login" })
                   : (window.location.href = "/login")
               }
-              className="p-2 rounded-xl text-zinc-400 hover:text-rose-400 hover:bg-zinc-850 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
               title={session?.user ? "Sign Out" : "Exit to Login"}
               aria-label={session?.user ? "Sign Out" : "Exit to Login"}
             >

@@ -24,7 +24,7 @@ export function OverdueAlertBanner({
 
   return (
     <>
-      <div className="rounded-2xl bg-gradient-to-r from-amber-950/90 via-red-950/70 to-slate-900 border-2 border-amber-500/50 p-4 sm:p-5 shadow-2xl shadow-amber-950/40 relative overflow-hidden animate-in fade-in duration-300">
+      <div className="rounded-3xl bg-amber-500/[0.08] backdrop-blur-2xl border border-amber-500/30 p-4 sm:p-5 shadow-2xl relative overflow-hidden animate-in fade-in duration-300">
         {/* Glow corner accent */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
