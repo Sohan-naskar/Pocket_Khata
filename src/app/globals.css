@@ -4,10 +4,7 @@
 
 :root {
   --background: #09090b;
-  --foreground: #fafafa;
-  --card: #121215;
-  --card-border: #27272a;
-  --accent-mint: #00d632;
+  --foreground: #f4f4f5;
 }
 
 * {
@@ -31,25 +28,10 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Skiper UI micro-borders and glass surfaces */
-.skiper-card {
-  background: #121215;
-  border: 1px solid #27272a;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-}
-
-.skiper-card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.skiper-card-hover:hover {
-  border-color: #3f3f46;
-  transform: translateY(-1px);
-}
-
-/* Custom sleek scrollbar */
+/* Custom sleek hairline scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {

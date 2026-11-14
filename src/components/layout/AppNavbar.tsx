@@ -6,11 +6,11 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Wallet, Menu, Shield, User, LogOut, Calendar, Plus } from "lucide-react";
 import { formatDateDDMMYYYY } from "@/lib/date-utils";
-import { EntryTabType } from "@/components/modals/UnifiedTransactionModal";
+import { EntryTab } from "@/components/modals/UnifiedTransactionModal";
 
 interface AppNavbarProps {
   onOpenMobileMenu: () => void;
-  onOpenNewEntry?: (tab?: EntryTabType) => void;
+  onOpenNewEntry?: (tab?: EntryTab) => void;
   onOpenAddExpense?: () => void;
   onOpenAddIncome?: () => void;
   onOpenLendModal?: () => void;
@@ -43,7 +43,7 @@ export function AppNavbar({
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-850/80 border border-transparent hover:border-zinc-800 min-h-[44px] min-w-[44px] flex items-center justify-center transition"
+            className="lg:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/80 border border-transparent hover:border-zinc-750 min-h-[44px] min-w-[44px] flex items-center justify-center transition"
             aria-label="Open Navigation Menu"
           >
             <Menu className="w-5 h-5" />
@@ -53,7 +53,7 @@ export function AppNavbar({
             href="/dashboard"
             className="flex items-center gap-2.5 group transition"
           >
-            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shadow-md group-hover:border-zinc-600 transition">
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shadow-md group-hover:border-zinc-700 transition">
               <Wallet className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="flex flex-col">
@@ -92,7 +92,7 @@ export function AppNavbar({
           <div className="flex items-center gap-1.5 pl-2 border-l border-zinc-800">
             <Link
               href={isOnAdmin ? "/admin" : "/wallet-settings"}
-              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-zinc-850/80 transition min-h-[44px]"
+              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-zinc-850 transition min-h-[44px]"
               title={isOnAdmin ? (session?.user?.name || "Admin Portal") : "Wallet & Profile Settings"}
             >
               <div
@@ -121,7 +121,7 @@ export function AppNavbar({
                   ? signOut({ callbackUrl: "/login" })
                   : (window.location.href = "/login")
               }
-              className="p-2 rounded-xl text-zinc-400 hover:text-rose-400 hover:bg-zinc-850/80 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-xl text-zinc-400 hover:text-rose-400 hover:bg-zinc-850 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
               title={session?.user ? "Sign Out" : "Exit to Login"}
               aria-label={session?.user ? "Sign Out" : "Exit to Login"}
             >

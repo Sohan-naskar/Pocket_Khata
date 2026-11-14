@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Wallet, CreditCard, Banknote, Sliders, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Wallet, CreditCard, Banknote, Sliders, ArrowUpRight, ArrowDownRight, RefreshCw } from "lucide-react";
 import { WalletBalances } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { AdjustWalletModal } from "@/components/modals/AdjustWalletModal";
@@ -23,125 +23,113 @@ export function WalletCards({
   const online = balances?.onlineBalance ?? 0;
   const cash = balances?.cashBalance ?? 0;
 
+  const onlinePct = total > 0 ? Math.round((online / total) * 100) : 0;
+  const cashPct = total > 0 ? Math.round((cash / total) * 100) : 0;
+
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Card 1: Total Balance */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-[#0B101E] border border-indigo-500/30 p-5 sm:p-6 shadow-xl shadow-indigo-950/40">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="flex items-center justify-between mb-4">
+      {/* Skiper UI Hero Liquidity Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#111318] border border-white/[0.08] p-5 sm:p-7 shadow-2xl transition-all duration-300 hover:border-white/[0.12]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
-                <Wallet className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-indigo-300 uppercase tracking-wider">
-                  Total Net Balance
-                </p>
-                <p className="text-[11px] text-slate-400">Online + Cash Unified</p>
-              </div>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider font-mono">
+                Total Net Liquidity
+              </span>
             </div>
 
-            <button
-              onClick={() => setIsAdjustOpen(true)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Calibrate Balances"
-              aria-label="Calibrate Balances"
-            >
-              <Sliders className="w-4 h-4" />
-            </button>
+            <div className="flex items-baseline gap-2.5 mt-1.5">
+              {isLoading ? (
+                <div className="h-10 w-44 bg-zinc-800/80 rounded-lg animate-pulse" />
+              ) : (
+                <h2 className="text-3xl sm:text-4xl font-extrabold font-financial text-white tracking-tight">
+                  {formatCurrency(total)}
+                </h2>
+              )}
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Live
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              Unified real-time balance across bank accounts, UPI & physical cash.
+            </p>
           </div>
 
-          <div className="mt-2">
-            {isLoading ? (
-              <div className="h-9 w-36 bg-slate-800 rounded animate-pulse" />
-            ) : (
-              <h3 className="text-2xl sm:text-3xl font-financial font-extrabold text-white tracking-tight">
-                {formatCurrency(total)}
-              </h3>
-            )}
-            <div className="flex items-center gap-1.5 mt-2 text-xs text-indigo-300">
-              <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
-              <span>Real-time Net Worth</span>
-            </div>
+          {/* Quick Transfer / Calibrate Action */}
+          <div className="flex items-center gap-2 self-start md:self-auto">
+            <button
+              onClick={() => setIsAdjustOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/[0.05] hover:bg-white/[0.09] text-zinc-200 border border-white/[0.08] transition active:scale-[0.98]"
+              title="Calibrate or Adjust Balances"
+            >
+              <Sliders className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Calibrate Balances</span>
+            </button>
           </div>
         </div>
 
-        {/* Card 2: Online Balance (UPI / Bank) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-950/80 via-slate-900 to-[#0B101E] border border-blue-500/30 p-5 sm:p-6 shadow-xl shadow-blue-950/40">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400">
+        {/* Dual Wallet Breakdown Sub-Cards */}
+        <div className="mt-6 pt-5 border-t border-white/[0.06] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* 1. Online (UPI / Bank) Cardlet */}
+          <div className="p-4 rounded-xl bg-black/30 border border-white/[0.06] hover:border-blue-500/30 transition-all duration-200 flex items-center justify-between group">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/25 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-blue-300 uppercase tracking-wider">
-                  Online Balance
-                </p>
-                <p className="text-[11px] text-slate-400">UPI, GPay, Bank A/C</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-medium text-zinc-400">Online Wallet</p>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                    UPI
+                  </span>
+                </div>
+                {isLoading ? (
+                  <div className="h-6 w-24 bg-zinc-800 rounded animate-pulse mt-1" />
+                ) : (
+                  <p className="text-lg font-bold font-financial text-blue-300 mt-0.5">
+                    {formatCurrency(online)}
+                  </p>
+                )}
               </div>
             </div>
 
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-              UPI LIVE
-            </span>
-          </div>
-
-          <div className="mt-2">
-            {isLoading ? (
-              <div className="h-9 w-36 bg-slate-800 rounded animate-pulse" />
-            ) : (
-              <h3 className="text-2xl sm:text-3xl font-financial font-extrabold text-blue-300 tracking-tight">
-                {formatCurrency(online)}
-              </h3>
-            )}
-            <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
-              <span>Primary for shopping & dining</span>
-              <span className="font-mono text-blue-400 font-semibold">
-                {total > 0 ? `${Math.round((online / total) * 100)}%` : "0%"}
+            <div className="text-right">
+              <span className="text-xs font-mono font-semibold text-zinc-400">
+                {onlinePct}%
               </span>
+              <p className="text-[10px] text-zinc-500">GPay • Paytm</p>
             </div>
           </div>
-        </div>
 
-        {/* Card 3: Cash Balance (Physical) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-950/80 via-slate-900 to-[#0B101E] border border-emerald-500/30 p-5 sm:p-6 shadow-xl shadow-emerald-950/40 sm:col-span-2 lg:col-span-1">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+          {/* 2. Cash in Pocket Cardlet */}
+          <div className="p-4 rounded-xl bg-black/30 border border-white/[0.06] hover:border-emerald-500/30 transition-all duration-200 flex items-center justify-between group">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition">
                 <Banknote className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
-                  Cash Balance
-                </p>
-                <p className="text-[11px] text-slate-400">Pocket & Wallet Notes</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-medium text-zinc-400">Cash in Pocket</p>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                    CASH
+                  </span>
+                </div>
+                {isLoading ? (
+                  <div className="h-6 w-24 bg-zinc-800 rounded animate-pulse mt-1" />
+                ) : (
+                  <p className="text-lg font-bold font-financial text-emerald-300 mt-0.5">
+                    {formatCurrency(cash)}
+                  </p>
+                )}
               </div>
             </div>
 
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              PHYSICAL
-            </span>
-          </div>
-
-          <div className="mt-2">
-            {isLoading ? (
-              <div className="h-9 w-36 bg-slate-800 rounded animate-pulse" />
-            ) : (
-              <h3 className="text-2xl sm:text-3xl font-financial font-extrabold text-emerald-300 tracking-tight">
-                {formatCurrency(cash)}
-              </h3>
-            )}
-            <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
-              <span>Groceries, chai & transport</span>
-              <span className="font-mono text-emerald-400 font-semibold">
-                {total > 0 ? `${Math.round((cash / total) * 100)}%` : "0%"}
+            <div className="text-right">
+              <span className="text-xs font-mono font-semibold text-zinc-400">
+                {cashPct}%
               </span>
+              <p className="text-[10px] text-zinc-500">Pocket Notes</p>
             </div>
           </div>
         </div>
@@ -157,4 +145,3 @@ export function WalletCards({
     </>
   );
 }
-

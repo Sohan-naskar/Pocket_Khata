@@ -16,12 +16,12 @@ import {
   LogOut,
   Plus,
 } from "lucide-react";
-import { EntryTabType } from "@/components/modals/UnifiedTransactionModal";
+import { EntryTab } from "@/components/modals/UnifiedTransactionModal";
 
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenNewEntry?: (tab?: EntryTabType) => void;
+  onOpenNewEntry?: (tab?: EntryTab) => void;
   onOpenAddExpense?: () => void;
   onOpenAddIncome?: () => void;
   onOpenLendModal?: () => void;
@@ -32,8 +32,6 @@ export function MobileDrawer({
   onClose,
   onOpenNewEntry,
   onOpenAddExpense,
-  onOpenAddIncome,
-  onOpenLendModal,
 }: MobileDrawerProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -48,22 +46,18 @@ export function MobileDrawer({
     { name: "Day Ledger", href: "/transactions", icon: ReceiptText },
     { name: "Udhaar Tracker", href: "/udhaar", icon: HandCoins },
     { name: "Monthly Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Wallet & Profile", href: "/wallet-settings", icon: SlidersHorizontal },
+    { name: "Wallet Settings", href: "/wallet-settings", icon: SlidersHorizontal },
     ...(isAdmin || pathname.startsWith("/admin")
       ? [{ name: "Admin Portal", href: "/admin", icon: Shield, adminOnly: true }]
       : []),
   ];
 
-  const handleOpenTab = (tab: EntryTabType) => {
+  const handleAction = () => {
     onClose();
     if (onOpenNewEntry) {
-      onOpenNewEntry(tab);
-    } else if (tab === "EXPENSE" && onOpenAddExpense) {
+      onOpenNewEntry("EXPENSE");
+    } else if (onOpenAddExpense) {
       onOpenAddExpense();
-    } else if (tab === "INCOME" && onOpenAddIncome) {
-      onOpenAddIncome();
-    } else if (tab === "LEND" && onOpenLendModal) {
-      onOpenLendModal();
     }
   };
 
@@ -84,11 +78,13 @@ export function MobileDrawer({
               <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
                 <Wallet className="w-4 h-4 text-emerald-400" />
               </div>
-              <span className="font-bold text-white text-base">PocketKhata</span>
+              <span className="font-bold text-white text-base">
+                Pocket<span className="text-zinc-400">Khata</span>
+              </span>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-850 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Close navigation"
             >
               <X className="w-5 h-5" />
@@ -109,22 +105,32 @@ export function MobileDrawer({
                   <span className="text-xs text-zinc-400 truncate">
                     {session?.user?.email}
                   </span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                      isAdmin
-                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                        : "bg-zinc-800 text-zinc-300 border border-zinc-700"
-                    }`}
-                  >
-                    {userRole}
-                  </span>
+                  {isAdmin && (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                      ADMIN
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="py-4 space-y-1">
+          {/* Primary Action Button */}
+          <div className="pt-4">
+            <button
+              onClick={handleAction}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-bold transition shadow-md shadow-white/5"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>+ New Transaction Entry</span>
+            </button>
+          </div>
+
+          {/* Links */}
+          <nav className="mt-5 space-y-1">
+            <p className="px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-mono">
+              Navigation
+            </p>
             {links.map((link) => {
               const isActive = pathname === link.href;
               const Icon = link.icon;
@@ -133,16 +139,24 @@ export function MobileDrawer({
                   key={link.name}
                   href={link.href}
                   onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition min-h-[44px] ${
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition min-h-[44px] ${
                     isActive
-                      ? "bg-zinc-850 text-white font-semibold border border-zinc-700/80"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                      ? "bg-white/[0.08] text-white font-semibold border border-white/[0.08]"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-emerald-400" : "text-zinc-400"}`} />
-                  <span>{link.name}</span>
+                  <Icon
+                    className={`w-4 h-4 ${
+                      isActive
+                        ? "text-emerald-400"
+                        : link.adminOnly
+                        ? "text-purple-400"
+                        : "text-zinc-400"
+                    }`}
+                  />
+                  <span className="flex-1">{link.name}</span>
                   {link.adminOnly && (
-                    <span className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
                       ADMIN
                     </span>
                   )}
@@ -150,20 +164,9 @@ export function MobileDrawer({
               );
             })}
           </nav>
-
-          {/* Quick Action */}
-          <div className="pt-2 pb-4 space-y-2 border-t border-zinc-800/80">
-            <button
-              onClick={() => handleOpenTab("EXPENSE")}
-              className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white text-zinc-950 font-bold text-xs transition active:scale-[0.98] min-h-[44px]"
-            >
-              <Plus className="w-4 h-4 text-zinc-950 stroke-[2.5]" />
-              <span>+ New Entry</span>
-            </button>
-          </div>
         </div>
 
-        {/* Sign Out */}
+        {/* Footer / Sign Out */}
         <div className="pt-4 border-t border-zinc-800">
           <button
             onClick={() =>
@@ -171,7 +174,7 @@ export function MobileDrawer({
                 ? signOut({ callbackUrl: "/login" })
                 : (window.location.href = "/login")
             }
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-950/30 transition min-h-[44px]"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-rose-400 hover:bg-rose-500/10 transition min-h-[44px]"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>

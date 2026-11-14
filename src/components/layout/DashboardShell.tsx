@@ -5,14 +5,14 @@ import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { MobileDrawer } from "@/components/layout/MobileDrawer";
-import { UnifiedTransactionModal, EntryTabType } from "@/components/modals/UnifiedTransactionModal";
+import { UnifiedTransactionModal, EntryTab } from "@/components/modals/UnifiedTransactionModal";
 
 export interface DashboardShellProps {
   children: (props: {
+    onOpenNewEntry: (tab?: EntryTab) => void;
     onOpenAddExpense: () => void;
     onOpenAddIncome: () => void;
     onOpenLendModal: () => void;
-    onOpenNewEntry: (tab?: EntryTabType) => void;
     refreshKey: number;
     triggerRefresh: () => void;
   }) => React.ReactNode;
@@ -21,14 +21,14 @@ export interface DashboardShellProps {
 export function DashboardShell({ children }: DashboardShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUnifiedModalOpen, setIsUnifiedModalOpen] = useState(false);
-  const [modalTab, setModalTab] = useState<EntryTabType>("EXPENSE");
+  const [modalTab, setModalTab] = useState<EntryTab>("EXPENSE");
   const [refreshKey, setRefreshKey] = useState(0);
 
   const triggerRefresh = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const handleOpenNewEntry = (tab: EntryTabType = "EXPENSE") => {
+  const handleOpenNewEntry = (tab: EntryTab = "EXPENSE") => {
     setModalTab(tab);
     setIsUnifiedModalOpen(true);
   };
@@ -57,17 +57,17 @@ export function DashboardShell({ children }: DashboardShellProps) {
         {/* Content Viewport */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden pb-24 lg:pb-12">
           {children({
+            onOpenNewEntry: handleOpenNewEntry,
             onOpenAddExpense: () => handleOpenNewEntry("EXPENSE"),
             onOpenAddIncome: () => handleOpenNewEntry("INCOME"),
             onOpenLendModal: () => handleOpenNewEntry("LEND"),
-            onOpenNewEntry: handleOpenNewEntry,
             refreshKey,
             triggerRefresh,
           })}
         </main>
       </div>
 
-      {/* Mobile Floating Action Nav (4 icons + 1 center action) */}
+      {/* Mobile Floating Action Nav */}
       <BottomNav onOpenQuickMenu={() => handleOpenNewEntry("EXPENSE")} />
 
       {/* Mobile Slide-Over Drawer */}
@@ -80,11 +80,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
         onOpenLendModal={() => handleOpenNewEntry("LEND")}
       />
 
-      {/* Unified Fast Entry Modal (Replaces 3 redundant separate modals) */}
+      {/* Unified Fast Entry Modal (Single modal replaces multiple redundant separate modals) */}
       <UnifiedTransactionModal
         isOpen={isUnifiedModalOpen}
+        initialTab={modalTab}
         onClose={() => setIsUnifiedModalOpen(false)}
-        defaultTab={modalTab}
         onSuccess={() => triggerRefresh()}
       />
     </div>
